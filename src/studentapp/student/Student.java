@@ -6,7 +6,7 @@
 
 
 // ---------- Student.java ----------
-package studentapp;
+package studentapp.student;
 
 
 public class Student {

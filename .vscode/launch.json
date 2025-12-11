@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        // {
+        //     "type": "java",
+        //     "name": "PDFTest",
+        //     "request": "launch",
+        //     "mainClass": "PDFTest",
+        //     "projectName": "StudentRecordSystem_9a6c534c"
+        // },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "studentapp.core.Main",
+            "projectName": "StudentRecordSystem_9a6c534c"
+        },
+        {
+            "type": "java",
+            "name": "Run Login Form",
+            "request": "launch",
+            "mainClass": "studentapp.LoginForm",
+            "projectName": "studentapp"
+        }
+    ]
+}

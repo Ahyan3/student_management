@@ -1,4 +1,4 @@
 admin,admin,Admin
-adminre,adminre,Admin
 user,user,User
 user123,User,User
+tan,tan,User

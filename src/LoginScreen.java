@@ -82,8 +82,8 @@ public class LoginScreen extends JFrame {
         add(panel);
     }
 
-    // For testing
-    public static void main(String[] args) {
-        new LoginScreen().setVisible(true);
-    }
+    // // For testing
+    // public static void main(String[] args) {
+    //     new LoginScreen().setVisible(true);
+    // }
 }

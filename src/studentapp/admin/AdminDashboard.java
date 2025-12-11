@@ -1,9 +1,12 @@
-package studentapp;
+package studentapp.admin;
 
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableModel;
+import studentapp.AdminDatabase;
+import studentapp.UserDatabase;
+import studentapp.auth.LoginForm;
 
 public class AdminDashboard extends JFrame {
 

@@ -2,9 +2,7 @@
     "java.project.sourcePaths": ["src"],
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
-        "lib/**/*.jar"
-    ],
-    "cSpell.words": [
-        "studentapp"
+        "lib/itextpdf-5.5.13.3.jar",
+        "lib/mysql-connector-j-9.5.0.jar"
     ]
 }
