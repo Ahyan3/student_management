@@ -1,4 +1,3 @@
-```markdown
 # 📘 Student Record System  
 **Java Swing • MySQL • Modern Desktop UI**
 
