@@ -7,22 +7,25 @@ import java.io.FileWriter;
 import java.sql.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-// import javax.swing.text.Document;
 
 import studentapp.database.DatabaseConnection;
 
 // PDF (iText)
-import com.itextpdf.text.Document;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.Paragraph;
-
 
 public class StudentPanel extends JPanel {
 
     private JTextField txtId, txtName, txtCourse, txtYear;
     private JTable table;
     private DefaultTableModel model;
+
+    // 🎨 COLOR SYSTEM
+    private static final Color PRIMARY = new Color(52, 152, 219);
+    private static final Color SUCCESS = new Color(46, 204, 113);
+    private static final Color WARNING = new Color(241, 196, 15);
+    private static final Color DANGER  = new Color(231, 76, 60);
+    private static final Color DARK    = new Color(44, 62, 80);
 
     public StudentPanel() {
         setLayout(new BorderLayout());
@@ -33,18 +36,18 @@ public class StudentPanel extends JPanel {
         // ---------- TITLE ----------
         JLabel title = new JLabel("Student Records");
         title.setFont(new Font("Poppins", Font.BOLD, 24));
-        title.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
+        title.setBorder(BorderFactory.createEmptyBorder(15, 20, 10, 10));
         add(title, BorderLayout.NORTH);
 
-        // ---------- CENTER FORM + TABLE ----------
-        JPanel centerPanel = new JPanel(new GridLayout(1, 2));
+        // ---------- CENTER ----------
+        JPanel centerPanel = new JPanel(new GridLayout(1, 2, 15, 0));
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 15, 15));
         centerPanel.setBackground(Color.WHITE);
 
-        // ---------- LEFT SIDE FORM ----------
+        // ---------- FORM PANEL ----------
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         txtId = createTextField("Student ID");
         txtName = createTextField("Full Name");
@@ -57,91 +60,105 @@ public class StudentPanel extends JPanel {
         formPanel.add(txtYear);
         formPanel.add(Box.createVerticalStrut(15));
 
-        JButton addBtn = createButton("Add Student");
-        JButton updateBtn = createButton("Update Student");
-        JButton deleteBtn = createButton("Delete Student");
-        JButton clearBtn = createButton("Clear Fields");
+        // ---------- BUTTONS ----------
+        JButton addBtn    = createButton("➕ Add Student", SUCCESS);
+        JButton updateBtn = createButton("✏ Update Student", PRIMARY);
+        JButton deleteBtn = createButton("🗑 Delete Student", DANGER);
+        JButton clearBtn  = createButton("🧹 Clear Fields", WARNING);
 
-        JButton exportCsvBtn = createButton("Export CSV");      // NEW
-        JButton exportPdfBtn = createButton("Export PDF");      // NEW
+        JButton exportCsvBtn = createButton("⬇ Export CSV", DARK);
+        JButton exportPdfBtn = createButton("⬇ Export PDF", DARK);
 
         formPanel.add(addBtn);
+        formPanel.add(Box.createVerticalStrut(8));
         formPanel.add(updateBtn);
+        formPanel.add(Box.createVerticalStrut(8));
         formPanel.add(deleteBtn);
+        formPanel.add(Box.createVerticalStrut(8));
         formPanel.add(clearBtn);
-        formPanel.add(Box.createVerticalStrut(15));             // spacing
-        formPanel.add(exportCsvBtn);                            // NEW
-        formPanel.add(exportPdfBtn);                            // NEW
+        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(exportCsvBtn);
+        formPanel.add(Box.createVerticalStrut(8));
+        formPanel.add(exportPdfBtn);
 
         // ---------- TABLE ----------
         model = new DefaultTableModel(new String[]{"ID", "Name", "Course", "Year"}, 0);
         table = new JTable(model);
 
-        table.setRowHeight(25);
         table.setFont(new Font("Poppins", Font.PLAIN, 14));
         table.getTableHeader().setFont(new Font("Poppins", Font.BOLD, 14));
+        table.setRowHeight(28);
+        table.setSelectionBackground(PRIMARY);
+        table.setSelectionForeground(Color.WHITE);
+        table.setGridColor(new Color(230, 230, 230));
+        table.setShowVerticalLines(false);
 
-        // ====== TABLE LOCKED (NO EDIT, NO RESIZE, NO REORDER) ====== // NEW
         table.setDefaultEditor(Object.class, null);
         table.getTableHeader().setReorderingAllowed(false);
         table.getTableHeader().setResizingAllowed(false);
 
         JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         centerPanel.add(formPanel);
         centerPanel.add(scrollPane);
 
         add(centerPanel, BorderLayout.CENTER);
 
-        // ---------- BUTTON ACTIONS ----------
+        // ---------- ACTIONS ----------
         addBtn.addActionListener(e -> addStudent());
         updateBtn.addActionListener(e -> updateStudent());
         deleteBtn.addActionListener(e -> deleteStudent());
         clearBtn.addActionListener(e -> clearFields());
+        exportCsvBtn.addActionListener(e -> exportCSV());
+        exportPdfBtn.addActionListener(e -> exportPDF());
 
-        exportCsvBtn.addActionListener(e -> exportCSV());       // NEW
-        exportPdfBtn.addActionListener(e -> exportPDF());       // NEW
-
-        // Table click → load values
-        table.getSelectionModel().addListSelectionListener(x -> loadSelectedRow());
+        table.getSelectionModel().addListSelectionListener(e -> loadSelectedRow());
 
         loadStudents();
     }
 
-    private void loadFont() {
-        try {
-            Font pop = Font.createFont(Font.TRUETYPE_FONT,
-                    new java.io.File("Poppins-Regular.ttf"));
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(pop);
-        } catch (Exception e) {
-            System.out.println("Poppins font not loaded.");
-        }
-    }
-
-    private JTextField createTextField(String placeholder) {
+    // ---------- UI HELPERS ----------
+    private JTextField createTextField(String title) {
         JTextField tf = new JTextField();
-        tf.setFont(new Font("Poppins", Font.PLAIN, 16));
-        tf.setPreferredSize(new Dimension(260, 40));
-        tf.setBorder(BorderFactory.createTitledBorder(placeholder));
+        tf.setFont(new Font("Poppins", Font.PLAIN, 15));
+        tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        tf.setBorder(BorderFactory.createTitledBorder(title));
         return tf;
     }
 
-    private JButton createButton(String text) {
+    private JButton createButton(String text, Color bg) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Poppins", Font.BOLD, 14));
-        btn.setBackground(new Color(52, 152, 219));
         btn.setForeground(Color.WHITE);
+        btn.setBackground(bg);
         btn.setFocusPainted(false);
-        btn.setPreferredSize(new Dimension(200, 40));
-        btn.setMaximumSize(new Dimension(300, 40));
-        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                btn.setBackground(bg.brighter());
+            }
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                btn.setBackground(bg);
+            }
+        });
+
         return btn;
     }
 
+    private void loadFont() {
+        try {
+            Font pop = Font.createFont(Font.TRUETYPE_FONT, new File("Poppins-Regular.ttf"));
+            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(pop);
+        } catch (Exception ignored) {}
+    }
+
+    // ---------- DATABASE ----------
     private void loadStudents() {
         model.setRowCount(0);
-
         try (Connection conn = DatabaseConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery("SELECT * FROM students")) {
@@ -155,86 +172,53 @@ public class StudentPanel extends JPanel {
                 });
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error loading students: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
-private void addStudent() {
-    String id = txtId.getText().trim();
-    String name = txtName.getText().trim();
-    String course = txtCourse.getText().trim();
-    String year = txtYear.getText().trim();
+    private void addStudent() {
+        String id = txtId.getText().trim();
+        String name = txtName.getText().trim();
+        String course = txtCourse.getText().trim();
+        String year = txtYear.getText().trim();
 
-    // -------------------------
-    // VALIDATION SECTION
-    // -------------------------
+        if (id.isEmpty() || name.isEmpty() || year.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in all required fields.");
+            return;
+        }
 
-    // Empty Student ID
-    if (id.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Please enter your Student ID / Student Number.");
-        return;
+        if (!id.matches("\\d+")) {
+            JOptionPane.showMessageDialog(this, "Student ID must be numeric.");
+            return;
+        }
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = """
+    INSERT INTO students (student_id, fullname, course, year, created_at)
+    VALUES (?, ?, ?, ?, NOW())
+""";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, id);
+            ps.setString(2, name);
+            ps.setString(3, course);
+            ps.setString(4, year);
+            ps.executeUpdate();
+
+            logUpdate(conn, id, "Added");
+
+            JOptionPane.showMessageDialog(this, "Student added successfully!");
+            loadStudents();
+            clearFields();
+
+        } catch (SQLIntegrityConstraintViolationException e) {
+            JOptionPane.showMessageDialog(this, "Student ID already exists.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
     }
-
-    // Validate Student ID (only numbers – you can modify)
-    if (!id.matches("\\d+")) {
-        JOptionPane.showMessageDialog(this, "Invalid Student ID!\nStudent ID must contain numbers only.");
-        return;
-    }
-
-    // Empty Name
-    if (name.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Please enter the student's full name.");
-        return;
-    }
-
-    // Empty or invalid Year Level
-    if (year.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Enter your Year Level, please.");
-        return;
-    }
-
-    // Validate Year (allow 1,2,3,4 or 1st, 2nd, 3rd, 4th)
-    if (!year.matches("(1|2|3|4|1st|2nd|3rd|4th)")) {
-        JOptionPane.showMessageDialog(this,
-            "Invalid Year Level!\nValid values: 1, 2, 3, 4");
-        return;
-    }
-
-    // -------------------------
-    // INSERT TO DATABASE
-    // -------------------------
-
-    try (Connection conn = DatabaseConnection.getConnection()) {
-        String sql = "INSERT INTO students(student_id, fullname, course, year) VALUES (?, ?, ?, ?)";
-        PreparedStatement ps = conn.prepareStatement(sql);
-
-        ps.setString(1, id);
-        ps.setString(2, name);
-        ps.setString(3, course);
-        ps.setString(4, year);
-        ps.executeUpdate();
-
-        // Insert log
-        logUpdate(conn, id, "Added");
-
-        JOptionPane.showMessageDialog(this, "Student Added Successfully!");
-        loadStudents();
-        clearFields();
-
-    } catch (SQLIntegrityConstraintViolationException e) {
-        // Duplicate Student ID error
-        JOptionPane.showMessageDialog(this, 
-            "Student ID already exists!\nPlease use a unique Student Number.");
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Error adding student: " + e.getMessage());
-    }
-}
-
 
     private void updateStudent() {
-        String id = txtId.getText();
-
-        if (id.isEmpty()) {
+        if (txtId.getText().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Select a student first.");
             return;
         }
@@ -242,65 +226,51 @@ private void addStudent() {
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "UPDATE students SET fullname=?, course=?, year=? WHERE student_id=?";
             PreparedStatement ps = conn.prepareStatement(sql);
-
             ps.setString(1, txtName.getText());
             ps.setString(2, txtCourse.getText());
             ps.setString(3, txtYear.getText());
-            ps.setString(4, id);
+            ps.setString(4, txtId.getText());
             ps.executeUpdate();
 
-            // ----- INSERT LOG (UPDATE) ----- // NEW
-            logUpdate(conn, id, "Updated");
+            logUpdate(conn, txtId.getText(), "Updated");
 
-            JOptionPane.showMessageDialog(this, "Student Updated!");
+            JOptionPane.showMessageDialog(this, "Student updated!");
             loadStudents();
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error updating student: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
     private void deleteStudent() {
-        String id = txtId.getText();
+        if (txtId.getText().isEmpty()) return;
 
-        if (id.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Select a student to delete.");
-            return;
-        }
-
-        int confirm = JOptionPane.showConfirmDialog(this, "Delete student?", "Confirm",
-                JOptionPane.YES_NO_OPTION);
-        if (confirm != 0) return;
+        if (JOptionPane.showConfirmDialog(this, "Delete this student?", "Confirm",
+                JOptionPane.YES_NO_OPTION) != 0) return;
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "DELETE FROM students WHERE student_id=?";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, id);
+            PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM students WHERE student_id=?");
+            ps.setString(1, txtId.getText());
             ps.executeUpdate();
 
-            // ----- INSERT LOG (DELETE) ----- // NEW
-            logUpdate(conn, id, "Deleted");
+            logUpdate(conn, txtId.getText(), "Deleted");
 
-            JOptionPane.showMessageDialog(this, "Student Deleted!");
+            JOptionPane.showMessageDialog(this, "Student deleted.");
             loadStudents();
             clearFields();
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error deleting: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
-    // ---------- INSERT UPDATE LOG ---------
-    private void logUpdate(Connection conn, String studentId, String action) {
-        try {
-            String logSql = "INSERT INTO update_logs(student_id, action, timestamp) VALUES (?, ?, NOW())";
-            PreparedStatement ps = conn.prepareStatement(logSql);
-            ps.setString(1, studentId);
-            ps.setString(2, action);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            System.out.println("Log Error: " + e.getMessage());
-        }
+    private void logUpdate(Connection conn, String id, String action) throws SQLException {
+        PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO update_logs(student_id, action, timestamp) VALUES (?, ?, NOW())");
+        ps.setString(1, id);
+        ps.setString(2, action);
+        ps.executeUpdate();
     }
 
     private void loadSelectedRow() {
@@ -318,89 +288,65 @@ private void addStudent() {
         txtName.setText("");
         txtCourse.setText("");
         txtYear.setText("");
-
-        // RESET TABLE SELECTION // NEW
         table.clearSelection();
-        table.getSelectionModel().clearSelection();
-        table.repaint();
     }
 
-    // ---------- EXPORT CSV ---------- // NEW
     private void exportCSV() {
         try {
             JFileChooser chooser = new JFileChooser();
-            chooser.setSelectedFile(new java.io.File("students.csv"));
+            chooser.setSelectedFile(new File("students.csv"));
+            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
-            if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-                FileWriter fw = new FileWriter(chooser.getSelectedFile());
-
-                for (int i = 0; i < table.getColumnCount(); i++) {
-                    fw.append(table.getColumnName(i));
-                    fw.append(i == table.getColumnCount() - 1 ? "\n" : ",");
-                }
-
-                for (int r = 0; r < table.getRowCount(); r++) {
-                    for (int c = 0; c < table.getColumnCount(); c++) {
-                        fw.append(String.valueOf(table.getValueAt(r, c)));
-                        fw.append(c == table.getColumnCount() - 1 ? "\n" : ",");
-                    }
-                }
-
-                fw.flush();
-                fw.close();
-                JOptionPane.showMessageDialog(this, "CSV Exported!");
+            FileWriter fw = new FileWriter(chooser.getSelectedFile());
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                fw.append(table.getColumnName(i)).append(",");
             }
+            fw.append("\n");
+
+            for (int r = 0; r < table.getRowCount(); r++) {
+                for (int c = 0; c < table.getColumnCount(); c++) {
+                    fw.append(table.getValueAt(r, c).toString()).append(",");
+                }
+                fw.append("\n");
+            }
+            fw.close();
+
+            JOptionPane.showMessageDialog(this, "CSV exported!");
+
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "CSV Export Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
+    private void exportPDF() {
+        try {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setSelectedFile(new File("students.pdf"));
+            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
-// ---------- EXPORT PDF ----------
-private void exportPDF() {
-    try {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setSelectedFile(new java.io.File("students.pdf"));
+            com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
+            PdfWriter.getInstance(doc, new FileOutputStream(chooser.getSelectedFile()));
+            doc.open();
 
-        int result = chooser.showSaveDialog(null);
-        if (result != JFileChooser.APPROVE_OPTION) {
-            return; // user cancelled
+            PdfPTable pdfTable = new PdfPTable(4);
+            pdfTable.addCell("ID");
+            pdfTable.addCell("Name");
+            pdfTable.addCell("Course");
+            pdfTable.addCell("Year");
+
+            for (int i = 0; i < model.getRowCount(); i++) {
+                for (int j = 0; j < model.getColumnCount(); j++) {
+                    pdfTable.addCell(model.getValueAt(i, j).toString());
+                }
+            }
+
+            doc.add(pdfTable);
+            doc.close();
+
+            JOptionPane.showMessageDialog(this, "PDF exported!");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
-
-        File file = chooser.getSelectedFile();
-
-        // Create document
-        com.itextpdf.text.Document document = new com.itextpdf.text.Document();
-        PdfWriter.getInstance(document, new FileOutputStream(file.getAbsolutePath() + ".pdf"));
-
-        document.open(); // MUST open before adding content
-
-        // Create PDF table (columns match your table)
-        PdfPTable tablePDF = new PdfPTable(4);
-        tablePDF.addCell("ID");
-        tablePDF.addCell("Name");
-        tablePDF.addCell("Course");
-        tablePDF.addCell("Year");
-
-        // Fill the PDF table
-        for (int i = 0; i < model.getRowCount(); i++) {
-            tablePDF.addCell(model.getValueAt(i, 0).toString());
-            tablePDF.addCell(model.getValueAt(i, 1).toString());
-            tablePDF.addCell(model.getValueAt(i, 2).toString());
-            tablePDF.addCell(model.getValueAt(i, 3).toString());
-        }
-
-        // Add table to document
-        document.add(tablePDF);
-
-        document.close(); // close properly
-
-        JOptionPane.showMessageDialog(this, "PDF exported successfully!");
-
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "PDF export failed: " + e.getMessage());
-        e.printStackTrace();
     }
-}
-
 }

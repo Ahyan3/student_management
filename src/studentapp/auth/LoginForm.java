@@ -37,59 +37,124 @@ public class LoginForm extends JFrame {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            System.out.println("Failed to load Poppins font.");
         }
 
         // ===== WINDOW SETTINGS =====
         setTitle("Login");
-        setSize(400, 350);
+        setSize(720, 420);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false); // REMOVE maximize button
-        setLayout(new BorderLayout(10, 10));
+        setResizable(false);
+        setLayout(new GridLayout(1, 2));
 
-        // ===== TITLE PANEL =====
-        JLabel lblTitle = new JLabel("Student Record System", SwingConstants.CENTER);
+        // ===== LEFT PANEL =====
+        JPanel leftPanel = new JPanel();
+        leftPanel.setBackground(new Color(41, 128, 185));
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setBorder(BorderFactory.createEmptyBorder(50, 40, 50, 40));
+
+        JLabel lblTitle = new JLabel("Student Record System");
         lblTitle.setFont(new Font("Poppins", Font.BOLD, 22));
-        lblTitle.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+        lblTitle.setForeground(new Color(245, 245, 245));
 
-        add(lblTitle, BorderLayout.NORTH);
+        JLabel lblDesc = new JLabel(
+                "<html>Manage student records efficiently and securely.<br>"
+              + "Access academic data with ease.</html>"
+        );
+        lblDesc.setForeground(new Color(230, 230, 230));
+        lblDesc.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
-        // ===== CENTER FORM PANEL =====
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new GridLayout(4, 1, 10, 10));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        leftPanel.add(lblTitle);
+        leftPanel.add(lblDesc);
 
-        JLabel lblUser = new JLabel("Username:");
+        // ===== RIGHT PANEL =====
+        JPanel rightPanel = new JPanel(new GridBagLayout());
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        rightPanel.setBackground(new Color(255, 255, 255, 240));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(10, 0, 10, 0);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 1.0;
+
+        JLabel lblLogin = new JLabel("Login");
+        lblLogin.setFont(new Font("Poppins", Font.BOLD, 22));
+
+        // ===== INPUT FIELDS =====
         txtUser = new JTextField();
-
-        JLabel lblPass = new JLabel("Password:");
         txtPass = new JPasswordField();
 
-        formPanel.add(lblUser);
-        formPanel.add(txtUser);
-        formPanel.add(lblPass);
-        formPanel.add(txtPass);
+        Dimension fieldSize = new Dimension(260, 42);
 
-        add(formPanel, BorderLayout.CENTER);
+        txtUser.setPreferredSize(fieldSize);
+        txtUser.setMinimumSize(fieldSize);
 
-        // ===== LOGIN BUTTON =====
-        JButton loginBtn = new JButton("Login");
-        loginBtn.setPreferredSize(new Dimension(140, 40));
-        loginBtn.setFocusPainted(false);
-        loginBtn.setBackground(new Color(52, 152, 219));
-        loginBtn.setForeground(Color.WHITE);
+        txtPass.setPreferredSize(fieldSize);
+        txtPass.setMinimumSize(fieldSize);
 
-        // Rounded button UI
-        loginBtn.setBorder(BorderFactory.createLineBorder(new Color(41, 128, 185), 2, true));
+        txtUser.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
 
-        JPanel btnPanel = new JPanel();
-        btnPanel.add(loginBtn);
+        txtPass.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
 
-        add(btnPanel, BorderLayout.SOUTH);
+        // ===== WRAPPERS (CRITICAL) =====
+        JPanel userWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        userWrapper.setOpaque(false);
+        userWrapper.add(txtUser);
 
-        // Button Action
-        loginBtn.addActionListener(e -> login());
+        JPanel passWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        passWrapper.setOpaque(false);
+        passWrapper.add(txtPass);
+
+        JButton btnLogin = new JButton("Login");
+        btnLogin.setPreferredSize(new Dimension(260, 42));
+        btnLogin.setMinimumSize(new Dimension(260, 42));
+        btnLogin.setBackground(new Color(52, 152, 219, 220));
+        btnLogin.setForeground(Color.WHITE);
+        btnLogin.setFocusPainted(false);
+        btnLogin.setBorder(BorderFactory.createLineBorder(
+                new Color(41, 128, 185), 1, true
+        ));
+
+        JPanel btnWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        btnWrapper.setOpaque(false);
+        btnWrapper.add(btnLogin);
+
+        // ===== FORM LAYOUT =====
+        gbc.gridy = 0;
+        rightPanel.add(lblLogin, gbc);
+
+        gbc.gridy++;
+        rightPanel.add(new JLabel("Username"), gbc);
+
+        gbc.gridy++;
+        rightPanel.add(userWrapper, gbc);
+
+        gbc.gridy++;
+        rightPanel.add(new JLabel("Password"), gbc);
+
+        gbc.gridy++;
+        rightPanel.add(passWrapper, gbc);
+
+        // 👇 THIS IS THE IMPORTANT PART
+        gbc.gridy++;
+        gbc.insets = new Insets(25, 0, 0, 0);
+        gbc.weighty = 0;
+        rightPanel.add(btnWrapper, gbc);
+
+        // ===== ADD PANELS =====
+        add(leftPanel);
+        add(rightPanel);
+
+        // ===== ACTION =====
+        btnLogin.addActionListener(e -> login());
 
         setVisible(true);
     }
@@ -97,6 +162,11 @@ public class LoginForm extends JFrame {
     private void login() {
         String u = txtUser.getText();
         String p = new String(txtPass.getPassword());
+
+        if (u.isEmpty() || p.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in all fields.");
+            return;
+        }
 
         try (Connection con = DatabaseConnection.getConnection()) {
 
@@ -111,12 +181,11 @@ public class LoginForm extends JFrame {
                 String role = rs.getString("role");
 
                 JOptionPane.showMessageDialog(this, "Welcome, " + u + "!");
-
                 dispose();
                 new MainDashboard(u, role);
 
             } else {
-                JOptionPane.showMessageDialog(this, "Invalid Login!");
+                JOptionPane.showMessageDialog(this, "Invalid username or password.");
             }
 
         } catch (Exception ex) {

@@ -22,8 +22,9 @@ public class HistoryPanel extends JPanel {
         // ---------- TITLE ----------
         JLabel title = new JLabel("System Activity History");
         title.setFont(new Font("Poppins", Font.BOLD, 24));
-        title.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
+        title.setBorder(BorderFactory.createEmptyBorder(15, 20, 10, 10));
         add(title, BorderLayout.NORTH);
+
 
         // ---------- TOP FILTER BAR ----------
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));

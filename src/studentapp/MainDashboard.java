@@ -12,45 +12,95 @@ public class MainDashboard extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
 
+    private JButton btnHome, btnStudent, btnHistory, btnSettings;
+    private JButton activeButton;
+
+    private JButton userMenuBtn;
+
+    private String currentUser = "User";
+    private String currentRole = "Role";
+
     public MainDashboard() {
         setTitle("Student Record System");
         setSize(1200, 700);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(true); // can maximize, but our layout stays clean
+        setLayout(new BorderLayout());
 
         loadFont();
 
-        setLayout(new BorderLayout());
+        // ===== TOP HEADER =====
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(41, 128, 185));
+        header.setPreferredSize(new Dimension(getWidth(), 60));
+        header.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        // ===== LEFT SIDEBAR =====
+        JLabel lblTitle = new JLabel("Student Record System");
+        lblTitle.setFont(new Font("Poppins", Font.BOLD, 20));
+        lblTitle.setForeground(Color.WHITE);
+
+        // ===== USER MENU BUTTON =====
+        userMenuBtn = new JButton();
+        userMenuBtn.setFont(new Font("Poppins", Font.PLAIN, 14));
+        userMenuBtn.setForeground(Color.WHITE);
+        userMenuBtn.setBackground(new Color(41, 128, 185));
+        userMenuBtn.setFocusPainted(false);
+        userMenuBtn.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+        userMenuBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // Remove default button look
+        userMenuBtn.setContentAreaFilled(false);
+        userMenuBtn.setOpaque(false);
+
+        // ===== DROPDOWN MENU =====
+        JPopupMenu userMenu = new JPopupMenu();
+        userMenu.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+
+        JMenuItem logoutItem = new JMenuItem("Logout");
+        logoutItem.setFont(new Font("Poppins", Font.PLAIN, 13));
+        logoutItem.addActionListener(e -> logout());
+
+        userMenu.add(logoutItem);
+
+        userMenuBtn.addActionListener(e ->
+                userMenu.show(userMenuBtn, 0, userMenuBtn.getHeight())
+        );
+
+        JPanel rightHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightHeader.setOpaque(false);
+        rightHeader.add(userMenuBtn);
+
+        header.add(lblTitle, BorderLayout.WEST);
+        header.add(rightHeader, BorderLayout.EAST);
+
+        add(header, BorderLayout.NORTH);
+
+        // ===== SIDEBAR =====
         JPanel sidebar = new JPanel();
         sidebar.setBackground(new Color(33, 47, 61));
-        sidebar.setPreferredSize(new Dimension(200, getHeight()));
-        sidebar.setLayout(new GridLayout(10, 1, 0, 10));
+        sidebar.setPreferredSize(new Dimension(220, getHeight()));
+        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+        sidebar.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
-        JLabel title = new JLabel("MENU", SwingConstants.CENTER);
-        title.setFont(new Font("Poppins", Font.BOLD, 20));
-        title.setForeground(Color.WHITE);
-        sidebar.add(title);
-
-        JButton btnHome = navButton("Home");
-        JButton btnStudent = navButton("Student");
-        JButton btnHistory = navButton("History");
-        JButton btnSettings = navButton("Settings");
+        btnHome = navButton("Home");
+        btnStudent = navButton("Student");
+        btnHistory = navButton("History");
+        btnSettings = navButton("Settings");
 
         sidebar.add(btnHome);
+        sidebar.add(Box.createVerticalStrut(10));
         sidebar.add(btnStudent);
+        sidebar.add(Box.createVerticalStrut(10));
         sidebar.add(btnHistory);
+        sidebar.add(Box.createVerticalStrut(10));
         sidebar.add(btnSettings);
 
         add(sidebar, BorderLayout.WEST);
 
-        // ===== MAIN AREA (CardLayout) =====
+        // ===== MAIN CONTENT =====
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        // Add all pages
         mainPanel.add(new HomePanel(), "home");
         mainPanel.add(new StudentPanel(), "student");
         mainPanel.add(new HistoryPanel(), "history");
@@ -59,46 +109,85 @@ public class MainDashboard extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
 
         // ===== BUTTON ACTIONS =====
-        btnHome.addActionListener(e -> cardLayout.show(mainPanel, "home"));
-        btnStudent.addActionListener(e -> cardLayout.show(mainPanel, "student"));
-        btnHistory.addActionListener(e -> cardLayout.show(mainPanel, "history"));
-        btnSettings.addActionListener(e -> cardLayout.show(mainPanel, "settings"));
+        btnHome.addActionListener(e -> switchPage(btnHome, "home"));
+        btnStudent.addActionListener(e -> switchPage(btnStudent, "student"));
+        btnHistory.addActionListener(e -> switchPage(btnHistory, "history"));
+        btnSettings.addActionListener(e -> switchPage(btnSettings, "settings"));
+
+        switchPage(btnHome, "home");
 
         setVisible(true);
     }
 
+    // ===== CONSTRUCTOR WITH USER DATA =====
     public MainDashboard(String username, String role) {
-        this(); // calls default constructor (builds UI)
+        this();
+        this.currentUser = username;
+        this.currentRole = role;
 
-        // Optional actions:
-        System.out.println("Logged in as: " + username);
-        System.out.println("Role: " + role);
+        userMenuBtn.setText(username + " (" + role + ") ▾");
     }
 
-
-    private JButton navButton(String name) {
-        JButton btn = new JButton(name);
-        btn.setFont(new Font("Poppins", Font.PLAIN, 16));
+    // ===== SIDEBAR BUTTON =====
+    private JButton navButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setMaximumSize(new Dimension(200, 45));
+        btn.setFont(new Font("Poppins", Font.PLAIN, 15));
         btn.setForeground(Color.WHITE);
         btn.setBackground(new Color(44, 62, 80));
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        btn.setHorizontalAlignment(SwingConstants.LEFT);
 
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btn.setBackground(new Color(52, 73, 94));
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (btn != activeButton)
+                    btn.setBackground(new Color(52, 73, 94));
             }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btn.setBackground(new Color(44, 62, 80));
+
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                if (btn != activeButton)
+                    btn.setBackground(new Color(44, 62, 80));
             }
         });
 
         return btn;
     }
 
+    // ===== PAGE SWITCH =====
+    private void switchPage(JButton btn, String page) {
+        if (activeButton != null) {
+            activeButton.setBackground(new Color(44, 62, 80));
+        }
+
+        activeButton = btn;
+        activeButton.setBackground(new Color(52, 152, 219));
+
+        cardLayout.show(mainPanel, page);
+    }
+
+    // ===== LOGOUT =====
+    private void logout() {
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to logout?",
+                "Confirm Logout",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            dispose();
+            new studentapp.auth.LoginForm();
+        }
+    }
+
     private void loadFont() {
         try {
-            Font pop = Font.createFont(Font.TRUETYPE_FONT, new java.io.File("Poppins-Regular.ttf"));
+            Font pop = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    new java.io.File("src/main/resources/fonts/Poppins-Regular.ttf")
+            );
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(pop);
         } catch (Exception ignored) {}
