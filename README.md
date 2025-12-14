@@ -190,4 +190,3 @@ Or simply use Run / Debug in VS Code if Java is configured.
 
 - **Ryan** – Core implementation, UI redesign, database logic, system flow
 - **ChatGPT** – Architecture guidance, UI/UX concepts, refactoring, documentation
-```
