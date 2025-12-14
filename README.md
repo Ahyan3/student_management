@@ -1,147 +1,194 @@
-# 📘 Student Record System – Java Swing + MySQL
+```markdown
+# 📘 Student Record System  
+**Java Swing • MySQL • Modern Desktop UI**
 
-A simple but complete **Student Record Management System** built with **Java Swing**, **MySQL (XAMPP)**, and an **MVC-style project structure**.  
-The system includes Login, Dashboard navigation, Student CRUD management, and history tracking.
+A modernized Student Record Management System built using Java Swing and MySQL (XAMPP), designed with a website-inspired UI, clean navigation, and a scalable structure.  
+The system focuses on usability, clean design, and real-world functionality such as logging, exporting, and dashboard analytics.
 
-**Work by Ryan and ChatGPT**
+**Developed by Ryan, with design & system guidance from ChatGPT**
 
----
+## 🧠 System Overview
+
+This application allows administrators to securely manage student records through a login system, a central dashboard, and feature-rich modules such as Student Management and History Tracking.
+
+Special focus was given to:
+
+- UI/UX consistency
+- Modern desktop design (website-like layout)
+- Maintainable and extendable code
 
 ## 🚀 Features
 
-### ✅ Authentication
-- Login screen using Swing UI  
-- Validates credentials from MySQL database  
-- Clean UI with error handling  
+### 🔐 Authentication
+- Secure login using MySQL database
+- Website-style login layout (split panel design)
+- Input validation & user feedback
+- Clean, modern Swing UI using Poppins font
+
+### 🏠 Main Dashboard
+- Sidebar navigation (Home, Student, History, Settings)
+- Website-inspired layout
+- Card-based dashboard overview
+- Future-ready structure for dark mode & analytics
+- Role-ready (admin/user expandable)
 
 ### 🎓 Student Management
-- Add Student  
-- Edit Student  
-- Delete Student  
-- View All Students  
-- Search  
+- Add, Update, Delete student records
+- Field validation (Student ID, Year Level, etc.)
+- Table row selection auto-fills form
+- Locked table (no accidental edits)
+- Clean form layout with modern buttons
 
-### 📜 History Module
-- Logs admin actions  
-- Displays record update history  
-- Connected to the database  
+### 📤 Export Features
+- Export student records to CSV
+- Export student records to PDF
+- Uses JFileChooser for user-selected save location
 
----
+### 📜 History / Logs
+- Automatic logging of:
+  - Add actions
+  - Update actions
+  - Delete actions
+- Stored in database with timestamps
+- Used for auditing and monitoring changes
 
-## 🏗️ System Structure (Final Project Structure)
+### 🎨 UI & UX Improvements (Major Upgrade)
+- Website-inspired layout (left/right panels)
+- Rounded buttons and inputs
+- Consistent color palette (blue/gray theme)
+- Improved spacing & alignment
+- Sidebar navigation with hover effects
+- Transparent & soft UI elements
+- Font consistency using Poppins
 
+The system now feels closer to a real production desktop application, not a basic Swing demo.
+
+## 🏗️ Project Structure
+
+```
 StudentRecordSystem/
 │
 ├── src/
-│ └── studentapp/
-│ ├── core/
-│ │ └── Main.java
-│ ├── auth/
-│ │ └── LoginForm.java
-│ ├── dashboard/
-│ │ └── DashboardForm.java
-│ ├── panels/
-│ │ ├── StudentsPanel.java
-│ │ ├── AddStudentPanel.java
-│ │ ├── EditStudentPanel.java
-│ │ └── HistoryPanel.java
-│ ├── database/
-│ │ └── DatabaseConnection.java
-│ └── models/
-│ └── StudentModel.java
+│   └── studentapp/
+│       ├── core/
+│       │   └── Main.java
+│       ├── auth/
+│       │   └── LoginForm.java
+│       ├── home/
+│       │   └── HomePanel.java
+│       ├── student/
+│       │   └── StudentPanel.java
+│       ├── history/
+│       │   └── HistoryPanel.java
+│       ├── settings/
+│       │   └── SettingsPanel.java
+│       ├── database/
+│       │   └── DatabaseConnection.java
 │
 ├── lib/
-│ └── mysql-connector-j-9.5.0.jar
+│   └── mysql-connector-j-9.5.0.jar
+│
+├── resources/
+│   └── fonts/
+│       ├── Poppins-Regular.ttf
+│       └── Poppins-Bold.ttf
 │
 └── README.md
+```
 
----
+## 🗄️ Database Setup (MySQL / XAMPP)
 
-## 🗄️ Database Setup (XAMPP / phpMyAdmin)
+1. Start Apache & MySQL in XAMPP
+2. Open phpMyAdmin
+3. Create database:
 
-1. Start **Apache & MySQL** in XAMPP  
-2. Open **phpMyAdmin**  
-3. Create database: student_system
-4. Create tables:
+```sql
+CREATE DATABASE student_system;
+```
 
-### **users table (for login)**
+### 👤 Users Table (Login)
+
 ```sql
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(50),
-  password VARCHAR(100)
-);
-
-### **students table**
-CREATE TABLE students (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100),
-  age INT,
-  course VARCHAR(100),
-  year_level VARCHAR(30)
-);
-
-### **history table**
-CREATE TABLE history (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  action VARCHAR(255),
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  username VARCHAR(50) NOT NULL,
+  password VARCHAR(100) NOT NULL,
+  role VARCHAR(20)
 );
 ```
 
----
+### 🎓 Students Table
 
-##🔌 Database Connection Code
+```sql
+CREATE TABLE students (
+  student_id VARCHAR(20) PRIMARY KEY,
+  fullname VARCHAR(100),
+  course VARCHAR(100),
+  year VARCHAR(20),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-### Located in:
+### 📜 Update Logs Table
 
-src/studentapp/database/DatabaseConnection.java
+```sql
+CREATE TABLE update_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  student_id VARCHAR(20),
+  action VARCHAR(50),
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
+### 🔌 Database Connection
+File: `src/studentapp/database/DatabaseConnection.java`
+
+```java
 private static final String URL = "jdbc:mysql://localhost:3306/student_system";
 private static final String USER = "root";
 private static final String PASS = "";
+```
 
+Make sure your MySQL Connector JAR is placed inside the `lib/` folder and added to the project classpath.
 
-Make sure your MySQL connector .jar is inside the lib/ folder.
+## ▶️ Running the Application
 
+**Entry Point**
 
----
-
-##▶️ Running the System
-
-### VS Code
-
-Ensure your main entry file is:
-
+```
 studentapp.core.Main
+```
 
+**Run via Terminal**
 
-Run using:
-
+```bash
 java studentapp.core.Main
+```
 
-Or use Run > Start Debugging if your Java project is configured.
+Or simply use Run / Debug in VS Code if Java is configured.
 
+## 🔧 Fixes & Enhancements Completed
+- Refactored UI layout to modern style
+- Improved login screen design
+- Redesigned dashboard navigation
+- Added CSV & PDF export
+- Added student action logging
+- Fixed table edit & selection issues
+- Improved validation & error messages
+- Reduced redundant code without removing functionality
+- Prepared structure for dark mode & future upgrades
 
----
-
-## 🔧 Fixes & Improvements Completed
-
-✔ Corrected package structure
-✔ Fixed "Could not find or load main class" error
-✔ Moved Main.java into proper folder
-✔ Setup MySQL connection
-✔ Connected panels to main dashboard
-✔ Fixed event listeners & navigation buttons
-✔ Resolved Swing layout issues
-✔ Added error handling
-✔ Cleaned up commented code for future use
-
-
----
+## 🧩 Planned Improvements (Next Phase)
+- 🌙 Dark Mode toggle
+- 📊 Advanced dashboard charts
+- 👥 Role-based access control
+- 🔍 Search & filter improvements
+- ⚙ Settings customization
 
 ## ✨ Credits
 
-### Developed by:
-- Ryan – Implementation, debugging, UI improvements
-- ChatGPT – System design, code structure, logic fixes, documentation
+**Developed by:**
+
+- **Ryan** – Core implementation, UI redesign, database logic, system flow
+- **ChatGPT** – Architecture guidance, UI/UX concepts, refactoring, documentation
+```
