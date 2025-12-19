@@ -1,12 +1,12 @@
 {
     "configurations": [
-        // {
-        //     "type": "java",
-        //     "name": "PDFTest",
-        //     "request": "launch",
-        //     "mainClass": "PDFTest",
-        //     "projectName": "StudentRecordSystem_9a6c534c"
-        // },
+        {
+            "type": "java",
+            "name": "DashboardFrame",
+            "request": "launch",
+            "mainClass": "studentapp.dashboard.DashboardFrame",
+            "projectName": "StudentRecordSystem_9a6c534c"
+        },
         {
             "type": "java",
             "name": "Main",

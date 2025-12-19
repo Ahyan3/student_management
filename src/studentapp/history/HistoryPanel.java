@@ -1,8 +1,11 @@
 package studentapp.history;
 
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.*;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import studentapp.database.DatabaseConnection;
 
@@ -15,53 +18,81 @@ public class HistoryPanel extends JPanel {
 
     public HistoryPanel() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(new Color(240, 244, 248));
 
-        loadFont();
-
-        // ---------- TITLE ----------
+        // TITLE
         JLabel title = new JLabel("System Activity History");
-        title.setFont(new Font("Poppins", Font.BOLD, 24));
-        title.setBorder(BorderFactory.createEmptyBorder(15, 20, 10, 10));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        title.setForeground(new Color(44, 62, 80));
+        title.setBorder(BorderFactory.createEmptyBorder(40, 50, 30, 50));
         add(title, BorderLayout.NORTH);
 
+        // MAIN CONTENT CARD
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+                new EmptyBorder(40, 40, 40, 40)));
+        card.setPreferredSize(new Dimension(900, 600));
 
-        // ---------- TOP FILTER BAR ----------
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filterPanel.setBackground(Color.WHITE);
+        // TOP CONTROL BAR (Search + Filter + Refresh)
+        JPanel controlBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+        controlBar.setBackground(Color.WHITE);
+        controlBar.setBorder(new EmptyBorder(0, 0, 20, 0));
 
-        filterBox = new JComboBox<>(new String[]{"All", "Added", "Updated", "Deleted"});
-        filterBox.setFont(new Font("Poppins", Font.PLAIN, 14));
+        JLabel filterLabel = new JLabel("Filter by Action:");
+        filterLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        filterBox = new JComboBox<>(new String[] { "All", "Added", "Updated", "Deleted" });
+        filterBox.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        filterBox.setPreferredSize(new Dimension(180, 40));
 
-        searchField = new JTextField();
-        searchField.setPreferredSize(new Dimension(200, 30));
-        searchField.setFont(new Font("Poppins", Font.PLAIN, 14));
-        searchField.setBorder(BorderFactory.createTitledBorder("Search"));
+        JLabel searchLabel = new JLabel("Search:");
+        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        searchField = new JTextField(25);
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        searchField.setPreferredSize(new Dimension(300, 40));
 
-        JButton refreshBtn = new JButton("Refresh");
-        styleButton(refreshBtn);
+        JButton searchBtn = createStyledButton("Search", new Color(52, 152, 219));
+        JButton refreshBtn = createStyledButton("Refresh", new Color(46, 204, 113));
 
-        JButton searchBtn = new JButton("Search");
-        styleButton(searchBtn);
+        controlBar.add(filterLabel);
+        controlBar.add(filterBox);
+        controlBar.add(Box.createHorizontalStrut(30));
+        controlBar.add(searchLabel);
+        controlBar.add(searchField);
+        controlBar.add(searchBtn);
+        controlBar.add(Box.createHorizontalStrut(10));
+        controlBar.add(refreshBtn);
 
-        filterPanel.add(filterBox);
-        filterPanel.add(searchField);
-        filterPanel.add(searchBtn);
-        filterPanel.add(refreshBtn);
+        card.add(controlBar, BorderLayout.NORTH);
 
-        add(filterPanel, BorderLayout.SOUTH);
+        // TABLE
+        model = new DefaultTableModel(new String[] { "Action", "Details", "Date & Time" }, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
-        // ---------- TABLE ----------
-        model = new DefaultTableModel(new String[]{"Action", "Details", "Date & Time"}, 0);
         table = new JTable(model);
-        table.setRowHeight(25);
-        table.setFont(new Font("Poppins", Font.PLAIN, 14));
-        table.getTableHeader().setFont(new Font("Poppins", Font.BOLD, 14));
+        table.setRowHeight(40);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
+        table.getTableHeader().setBackground(new Color(248, 249, 250));
+        table.setGridColor(new Color(230, 230, 230));
+        table.getTableHeader().setReorderingAllowed(false);
 
         JScrollPane scrollPane = new JScrollPane(table);
-        add(scrollPane, BorderLayout.CENTER);
+        scrollPane.setBorder(null);
+        card.add(scrollPane, BorderLayout.CENTER);
 
-        // ---------- BUTTON ACTIONS ----------
+        // Wrap card in scroll for responsiveness
+        JScrollPane mainScroll = new JScrollPane(card);
+        mainScroll.setBorder(null);
+        mainScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        add(mainScroll, BorderLayout.CENTER);
+
+        // ACTIONS
         searchBtn.addActionListener(e -> searchHistory());
         refreshBtn.addActionListener(e -> loadHistory());
         filterBox.addActionListener(e -> filterHistory());
@@ -69,100 +100,81 @@ public class HistoryPanel extends JPanel {
         loadHistory();
     }
 
-    private void loadFont() {
-        try {
-            Font pop = Font.createFont(Font.TRUETYPE_FONT, new java.io.File("Poppins-Regular.ttf"));
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(pop);
-        } catch (Exception e) {
-            System.out.println("Poppins loading failed.");
-        }
+    private JButton createStyledButton(String text, Color bg) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btn.setBackground(bg);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(new EmptyBorder(12, 24, 12, 24));
+        btn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                btn.setBackground(bg.brighter());
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                btn.setBackground(bg);
+            }
+        });
+        return btn;
     }
 
-    // ---------------------- LOAD ALL HISTORY ----------------------
     private void loadHistory() {
-        String sql = "SELECT action, student_id, timestamp FROM update_logs ORDER BY timestamp DESC";
-        runQuery(sql);
+        runQuery("SELECT action, student_id, timestamp FROM update_logs ORDER BY timestamp DESC");
     }
 
-    // ---------------------- FILTER HISTORY ----------------------
     private void filterHistory() {
-        String selected = filterBox.getSelectedItem().toString();
-
-        String sql;
-
-        if (selected.equals("All")) {
-            sql = "SELECT action, student_id, timestamp FROM update_logs ORDER BY timestamp DESC";
+        String selected = (String) filterBox.getSelectedItem();
+        if ("All".equals(selected)) {
+            loadHistory();
         } else {
-            sql = "SELECT action, student_id, timestamp FROM update_logs WHERE action = '" + selected + "' ORDER BY timestamp DESC";
+            runQuery("SELECT action, student_id, timestamp FROM update_logs WHERE action = '" + selected
+                    + "' ORDER BY timestamp DESC");
         }
-
-        runQuery(sql);
     }
 
-    // ---------------------- SEARCH HISTORY ----------------------
     private void searchHistory() {
         String keyword = searchField.getText().trim();
-
         if (keyword.isEmpty()) {
             loadHistory();
             return;
         }
 
-        String sql =
-            "SELECT action, student_id, timestamp FROM update_logs " +
-            "WHERE action LIKE '%" + keyword + "%' " +
-            "OR student_id LIKE '%" + keyword + "%' " +
-            "OR timestamp LIKE '%" + keyword + "%' " +
-            "ORDER BY timestamp DESC";
+        String sql = "SELECT action, student_id, timestamp FROM update_logs " +
+                "WHERE action LIKE '%" + keyword + "%' " +
+                "OR student_id LIKE '%" + keyword + "%' " +
+                "OR timestamp LIKE '%" + keyword + "%' " +
+                "ORDER BY timestamp DESC";
 
         runQuery(sql);
     }
 
-    // ---------------------- RUN QUERY + FORMAT TABLE ----------------------
     private void runQuery(String sql) {
         model.setRowCount(0);
-
         try (Connection conn = DatabaseConnection.getConnection();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery(sql)) {
 
             while (rs.next()) {
                 String action = rs.getString("action");
-                String studentID = rs.getString("student_id");
+                String studentID = rs.getString("student_id") != null ? rs.getString("student_id") : "N/A";
                 String time = rs.getString("timestamp");
 
-                String details = "";
+                String details = switch (action) {
+                    case "Added" -> "Added new student ID: " + studentID;
+                    case "Updated" -> "Updated student ID: " + studentID;
+                    case "Deleted" -> "Deleted student ID: " + studentID;
+                    default -> "Performed action on student ID: " + studentID;
+                };
 
-                // Format action descriptions
-                switch (action) {
-                    case "Added":
-                        details = "Added student ID: " + studentID;
-                        break;
-                    case "Updated":
-                        details = "Updated student ID: " + studentID;
-                        break;
-                    case "Deleted":
-                        details = "Deleted student ID: " + studentID;
-                        break;
-                    default:
-                        details = "Action on student ID: " + studentID;
-                }
-
-                model.addRow(new Object[]{action, details, time});
+                model.addRow(new Object[] { action, details, time });
             }
-
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "History Load Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error loading history: " + e.getMessage(), "Database Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    private void styleButton(JButton btn) {
-        btn.setFont(new Font("Poppins", Font.BOLD, 14));
-        btn.setBackground(new Color(51, 153, 255));
-        btn.setForeground(Color.WHITE);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
     }
 }

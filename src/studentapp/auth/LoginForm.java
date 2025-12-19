@@ -53,9 +53,10 @@ public class LoginForm extends JFrame {
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setBorder(BorderFactory.createEmptyBorder(50, 40, 50, 40));
 
-        JLabel lblTitle = new JLabel("Student Record System");
-        lblTitle.setFont(new Font("Poppins", Font.BOLD, 22));
+        JLabel lblTitle = new JLabel("Teacher Assistant System");
+        lblTitle.setFont(new Font("Poppins", Font.BOLD, 18));
         lblTitle.setForeground(new Color(245, 245, 245));
+        
 
         JLabel lblDesc = new JLabel(
                 "<html>Manage student records efficiently and securely.<br>"

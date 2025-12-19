@@ -1,178 +1,268 @@
 package studentapp.student;
 
 import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import studentapp.database.DatabaseConnection;
 
-// PDF (iText)
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
-
 public class StudentPanel extends JPanel {
 
-    private JTextField txtId, txtName, txtCourse, txtYear;
+    private JTextField txtId, txtName, txtCourse;
+    private JComboBox<String> cmbYear;
     private JTable table;
     private DefaultTableModel model;
 
-    // 🎨 COLOR SYSTEM
     private static final Color PRIMARY = new Color(52, 152, 219);
     private static final Color SUCCESS = new Color(46, 204, 113);
     private static final Color WARNING = new Color(241, 196, 15);
-    private static final Color DANGER  = new Color(231, 76, 60);
-    private static final Color DARK    = new Color(44, 62, 80);
+    private static final Color DANGER = new Color(231, 76, 60);
+
+    private JLabel tblTitle;
 
     public StudentPanel() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(new Color(240, 244, 248));
 
-        loadFont();
-
-        // ---------- TITLE ----------
-        JLabel title = new JLabel("Student Records");
-        title.setFont(new Font("Poppins", Font.BOLD, 24));
-        title.setBorder(BorderFactory.createEmptyBorder(15, 20, 10, 10));
+        JLabel title = new JLabel("Students Management");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        title.setForeground(new Color(44, 62, 80));
+        title.setBorder(new EmptyBorder(40, 50, 20, 50));
         add(title, BorderLayout.NORTH);
 
-        // ---------- CENTER ----------
-        JPanel centerPanel = new JPanel(new GridLayout(1, 2, 15, 0));
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 15, 15));
-        centerPanel.setBackground(Color.WHITE);
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBorder(null);
 
-        // ---------- FORM PANEL ----------
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-        formPanel.setBackground(Color.WHITE);
+        JPanel main = new JPanel(new GridBagLayout());
+        main.setBackground(new Color(240, 244, 248));
+        main.setBorder(new EmptyBorder(20, 40, 50, 40));
 
-        txtId = createTextField("Student ID");
-        txtName = createTextField("Full Name");
-        txtCourse = createTextField("Course");
-        txtYear = createTextField("Year Level");
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
 
-        formPanel.add(txtId);
-        formPanel.add(txtName);
-        formPanel.add(txtCourse);
-        formPanel.add(txtYear);
-        formPanel.add(Box.createVerticalStrut(15));
+        // FORM CARD
+        JPanel formCard = new JPanel();
+        formCard.setLayout(new BoxLayout(formCard, BoxLayout.Y_AXIS));
+        formCard.setBackground(Color.WHITE);
+        formCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+                new EmptyBorder(40, 40, 40, 40)));
+        formCard.setMaximumSize(new Dimension(500, Integer.MAX_VALUE));
 
-        // ---------- BUTTONS ----------
-        JButton addBtn    = createButton("➕ Add Student", SUCCESS);
-        JButton updateBtn = createButton("✏ Update Student", PRIMARY);
-        JButton deleteBtn = createButton("🗑 Delete Student", DANGER);
-        JButton clearBtn  = createButton("🧹 Clear Fields", WARNING);
+        formCard.add(createVerticalField("Student ID:", txtId = new JTextField()));
+        formCard.add(Box.createVerticalStrut(20));
+        formCard.add(createVerticalField("Full Name:", txtName = new JTextField()));
+        formCard.add(Box.createVerticalStrut(20));
+        formCard.add(createVerticalField("Course:", txtCourse = new JTextField()));
+        formCard.add(Box.createVerticalStrut(20));
 
-        JButton exportCsvBtn = createButton("⬇ Export CSV", DARK);
-        JButton exportPdfBtn = createButton("⬇ Export PDF", DARK);
+        // Year Level Dropdown
+        JPanel yearWrapper = new JPanel(new BorderLayout());
+        yearWrapper.setOpaque(false);
+        yearWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
 
-        formPanel.add(addBtn);
-        formPanel.add(Box.createVerticalStrut(8));
-        formPanel.add(updateBtn);
-        formPanel.add(Box.createVerticalStrut(8));
-        formPanel.add(deleteBtn);
-        formPanel.add(Box.createVerticalStrut(8));
-        formPanel.add(clearBtn);
-        formPanel.add(Box.createVerticalStrut(20));
-        formPanel.add(exportCsvBtn);
-        formPanel.add(Box.createVerticalStrut(8));
-        formPanel.add(exportPdfBtn);
+        JPanel yearInner = new JPanel();
+        yearInner.setLayout(new BoxLayout(yearInner, BoxLayout.Y_AXIS));
+        yearInner.setOpaque(false);
 
-        // ---------- TABLE ----------
-        model = new DefaultTableModel(new String[]{"ID", "Name", "Course", "Year"}, 0);
+        JLabel yearLabel = new JLabel("Year Level:");
+        yearLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        yearLabel.setForeground(new Color(70, 70, 70));
+        yearLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        cmbYear = new JComboBox<>(new String[] { "1st Year", "2nd Year", "3rd Year", "4th Year" });
+        cmbYear.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
+        cmbYear.setPreferredSize(new Dimension(350, 52));
+        cmbYear.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        yearInner.add(yearLabel);
+        yearInner.add(Box.createVerticalStrut(8));
+        yearInner.add(cmbYear);
+        yearWrapper.add(yearInner, BorderLayout.CENTER);
+
+        formCard.add(yearWrapper);
+        formCard.add(Box.createVerticalStrut(40));
+
+        // Buttons - 3 rows × 2 columns
+        JPanel buttonPanel = new JPanel(new GridLayout(3, 2, 20, 20));
+        buttonPanel.setOpaque(false);
+
+        JButton addBtn = createBtn("Add", SUCCESS);
+        JButton updateBtn = createBtn("Update", PRIMARY);
+        JButton clearBtn = createBtn("Clear", WARNING);
+        JButton deleteBtn = createBtn("Delete", DANGER);
+        JButton pdfBtn = createBtn("Export PDF", new Color(220, 53, 69));
+        JButton csvBtn = createBtn("Export CSV", new Color(40, 167, 69));
+
+        buttonPanel.add(addBtn);
+        buttonPanel.add(updateBtn);
+        buttonPanel.add(clearBtn);
+        buttonPanel.add(deleteBtn);
+        buttonPanel.add(pdfBtn);
+        buttonPanel.add(csvBtn);
+
+        formCard.add(Box.createVerticalStrut(20));
+        formCard.add(buttonPanel);
+        formCard.add(Box.createVerticalStrut(40));
+
+        gbc.gridx = 0;
+        gbc.weightx = 0.4;
+        gbc.insets = new Insets(0, 0, 0, 40);
+        main.add(formCard, gbc);
+
+        // TABLE CARD
+        JPanel tableCard = new JPanel(new BorderLayout());
+        tableCard.setBackground(Color.WHITE);
+        tableCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+                new EmptyBorder(40, 40, 40, 40)));
+
+        tblTitle = new JLabel("Student List");
+        tblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        tblTitle.setForeground(new Color(44, 62, 80));
+        tblTitle.setBorder(new EmptyBorder(0, 0, 20, 0));
+        tableCard.add(tblTitle, BorderLayout.NORTH);
+
+        model = new DefaultTableModel(new String[] { "#", "ID", "Name", "Course", "Year" }, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
         table = new JTable(model);
-
-        table.setFont(new Font("Poppins", Font.PLAIN, 14));
-        table.getTableHeader().setFont(new Font("Poppins", Font.BOLD, 14));
-        table.setRowHeight(28);
+        table.setRowHeight(45);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
+        table.getTableHeader().setBackground(new Color(248, 249, 250));
         table.setSelectionBackground(PRIMARY);
-        table.setSelectionForeground(Color.WHITE);
         table.setGridColor(new Color(230, 230, 230));
-        table.setShowVerticalLines(false);
 
-        table.setDefaultEditor(Object.class, null);
-        table.getTableHeader().setReorderingAllowed(false);
-        table.getTableHeader().setResizingAllowed(false);
+        table.getColumnModel().getColumn(0).setPreferredWidth(60);
+        table.getColumnModel().getColumn(0).setMaxWidth(80);
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
 
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        JScrollPane tableScroll = new JScrollPane(table);
+        tableScroll.setBorder(null);
+        tableCard.add(tableScroll, BorderLayout.CENTER);
 
-        centerPanel.add(formPanel);
-        centerPanel.add(scrollPane);
+        gbc.gridx = 1;
+        gbc.weightx = 0.6;
+        main.add(tableCard, gbc);
 
-        add(centerPanel, BorderLayout.CENTER);
+        scrollPane.setViewportView(main);
+        add(scrollPane, BorderLayout.CENTER);
 
-        // ---------- ACTIONS ----------
+        // ACTIONS WITH LOGGING
         addBtn.addActionListener(e -> addStudent());
         updateBtn.addActionListener(e -> updateStudent());
         deleteBtn.addActionListener(e -> deleteStudent());
         clearBtn.addActionListener(e -> clearFields());
-        exportCsvBtn.addActionListener(e -> exportCSV());
-        exportPdfBtn.addActionListener(e -> exportPDF());
+        pdfBtn.addActionListener(e -> exportPDF());
+        csvBtn.addActionListener(e -> exportCSV());
 
-        table.getSelectionModel().addListSelectionListener(e -> loadSelectedRow());
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting())
+                loadSelected();
+        });
 
         loadStudents();
     }
 
-    // ---------- UI HELPERS ----------
-    private JTextField createTextField(String title) {
-        JTextField tf = new JTextField();
-        tf.setFont(new Font("Poppins", Font.PLAIN, 15));
-        tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
-        tf.setBorder(BorderFactory.createTitledBorder(title));
-        return tf;
+    private JPanel createVerticalField(String labelText, JTextField field) {
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+        wrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+
+        JPanel inner = new JPanel();
+        inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
+        inner.setOpaque(false);
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        label.setForeground(new Color(70, 70, 70));
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
+        field.setPreferredSize(new Dimension(350, 52));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                new EmptyBorder(12, 16, 12, 16)));
+        field.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        inner.add(label);
+        inner.add(Box.createVerticalStrut(8));
+        inner.add(field);
+        wrapper.add(inner, BorderLayout.CENTER);
+
+        return wrapper;
     }
 
-    private JButton createButton(String text, Color bg) {
+    private JButton createBtn(String text, Color bg) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("Poppins", Font.BOLD, 14));
-        btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
         btn.setBackground(bg);
+        btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
-
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent e) {
+        btn.setBorder(new EmptyBorder(16, 32, 16, 32));
+        btn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
                 btn.setBackground(bg.brighter());
             }
-            public void mouseExited(java.awt.event.MouseEvent e) {
+
+            @Override
+            public void mouseExited(MouseEvent e) {
                 btn.setBackground(bg);
             }
         });
-
         return btn;
     }
 
-    private void loadFont() {
-        try {
-            Font pop = Font.createFont(Font.TRUETYPE_FONT, new File("Poppins-Regular.ttf"));
-            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(pop);
-        } catch (Exception ignored) {}
+    // LOG ACTION TO update_logs TABLE
+    private void logAction(String action, String studentId) {
+        String sql = "INSERT INTO update_logs (action, student_id, timestamp) VALUES (?, ?, NOW())";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, action);
+            ps.setString(2, studentId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            System.err.println("Failed to log action: " + e.getMessage());
+        }
     }
 
-    // ---------- DATABASE ----------
     private void loadStudents() {
         model.setRowCount(0);
         try (Connection conn = DatabaseConnection.getConnection();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM students")) {
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery("SELECT * FROM students ORDER BY fullname")) {
 
+            int counter = 1;
             while (rs.next()) {
-                model.addRow(new Object[]{
+                model.addRow(new Object[] {
+                        counter++,
                         rs.getString("student_id"),
                         rs.getString("fullname"),
                         rs.getString("course"),
                         rs.getString("year")
                 });
             }
+            tblTitle.setText("Student List (" + (counter - 1) + ")");
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error loading students: " + e.getMessage());
         }
     }
 
@@ -180,82 +270,82 @@ public class StudentPanel extends JPanel {
         String id = txtId.getText().trim();
         String name = txtName.getText().trim();
         String course = txtCourse.getText().trim();
-        String year = txtYear.getText().trim();
+        String year = (String) cmbYear.getSelectedItem();
 
-        if (id.isEmpty() || name.isEmpty() || year.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill in all required fields.");
+        if (id.isEmpty() || name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "ID and Name are required.");
             return;
         }
-
         if (!id.matches("\\d+")) {
-            JOptionPane.showMessageDialog(this, "Student ID must be numeric.");
+            JOptionPane.showMessageDialog(this, "ID must be numeric.");
             return;
         }
 
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = """
-    INSERT INTO students (student_id, fullname, course, year, created_at)
-    VALUES (?, ?, ?, ?, NOW())
-""";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, id);
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO students (student_id, fullname, course, year, created_at) VALUES (?, ?, ?, ?, NOW())")) {
+            ps.setInt(1, Integer.parseInt(id));
             ps.setString(2, name);
             ps.setString(3, course);
             ps.setString(4, year);
             ps.executeUpdate();
 
-            logUpdate(conn, id, "Added");
-
+            logAction("Added", id); // ← LOG ADDED
             JOptionPane.showMessageDialog(this, "Student added successfully!");
-            loadStudents();
             clearFields();
+            loadStudents();
 
         } catch (SQLIntegrityConstraintViolationException e) {
-            JOptionPane.showMessageDialog(this, "Student ID already exists.");
+            JOptionPane.showMessageDialog(this, "ID already exists.");
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
     private void updateStudent() {
-        if (txtId.getText().isEmpty()) {
+        int row = table.getSelectedRow();
+        if (row == -1) {
             JOptionPane.showMessageDialog(this, "Select a student first.");
             return;
         }
 
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "UPDATE students SET fullname=?, course=?, year=? WHERE student_id=?";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, txtName.getText());
-            ps.setString(2, txtCourse.getText());
-            ps.setString(3, txtYear.getText());
-            ps.setString(4, txtId.getText());
-            ps.executeUpdate();
+        String id = txtId.getText().trim();
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE students SET fullname=?, course=?, year=? WHERE student_id=?")) {
+            ps.setString(1, txtName.getText().trim());
+            ps.setString(2, txtCourse.getText().trim());
+            ps.setString(3, (String) cmbYear.getSelectedItem());
+            ps.setInt(4, Integer.parseInt(id));
+            int updated = ps.executeUpdate();
 
-            logUpdate(conn, txtId.getText(), "Updated");
-
-            JOptionPane.showMessageDialog(this, "Student updated!");
-            loadStudents();
-
+            if (updated > 0) {
+                logAction("Updated", id); // ← LOG UPDATED
+                JOptionPane.showMessageDialog(this, "Student updated!");
+                loadStudents();
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
     private void deleteStudent() {
-        if (txtId.getText().isEmpty()) return;
+        int row = table.getSelectedRow();
+        if (row == -1)
+            return;
+
+        String id = txtId.getText().trim();
 
         if (JOptionPane.showConfirmDialog(this, "Delete this student?", "Confirm",
-                JOptionPane.YES_NO_OPTION) != 0) return;
+                JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
+            return;
 
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            PreparedStatement ps = conn.prepareStatement(
-                    "DELETE FROM students WHERE student_id=?");
-            ps.setString(1, txtId.getText());
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement("DELETE FROM students WHERE student_id=?")) {
+            ps.setInt(1, Integer.parseInt(id));
             ps.executeUpdate();
 
-            logUpdate(conn, txtId.getText(), "Deleted");
-
+            logAction("Deleted", id); // ← LOG DELETED
             JOptionPane.showMessageDialog(this, "Student deleted.");
             loadStudents();
             clearFields();
@@ -265,88 +355,87 @@ public class StudentPanel extends JPanel {
         }
     }
 
-    private void logUpdate(Connection conn, String id, String action) throws SQLException {
-        PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO update_logs(student_id, action, timestamp) VALUES (?, ?, NOW())");
-        ps.setString(1, id);
-        ps.setString(2, action);
-        ps.executeUpdate();
-    }
-
-    private void loadSelectedRow() {
+    private void loadSelected() {
         int row = table.getSelectedRow();
-        if (row == -1) return;
+        if (row == -1)
+            return;
 
-        txtId.setText(model.getValueAt(row, 0).toString());
-        txtName.setText(model.getValueAt(row, 1).toString());
-        txtCourse.setText(model.getValueAt(row, 2).toString());
-        txtYear.setText(model.getValueAt(row, 3).toString());
+        txtId.setText(model.getValueAt(row, 1).toString());
+        txtName.setText(model.getValueAt(row, 2).toString());
+        txtCourse.setText(model.getValueAt(row, 3).toString());
+        cmbYear.setSelectedItem(model.getValueAt(row, 4));
     }
 
     private void clearFields() {
         txtId.setText("");
         txtName.setText("");
         txtCourse.setText("");
-        txtYear.setText("");
+        cmbYear.setSelectedIndex(0);
         table.clearSelection();
     }
 
     private void exportCSV() {
         try {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            String fileName = "students_" + timestamp + ".csv";
+
             JFileChooser chooser = new JFileChooser();
-            chooser.setSelectedFile(new File("students.csv"));
-            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+            chooser.setSelectedFile(new File(fileName));
+            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
+                return;
 
-            FileWriter fw = new FileWriter(chooser.getSelectedFile());
-            for (int i = 0; i < table.getColumnCount(); i++) {
-                fw.append(table.getColumnName(i)).append(",");
-            }
-            fw.append("\n");
-
-            for (int r = 0; r < table.getRowCount(); r++) {
-                for (int c = 0; c < table.getColumnCount(); c++) {
-                    fw.append(table.getValueAt(r, c).toString()).append(",");
+            try (FileWriter fw = new FileWriter(chooser.getSelectedFile())) {
+                fw.append("Student ID,Full Name,Course,Year Level\n");
+                for (int i = 0; i < model.getRowCount(); i++) {
+                    fw.append(model.getValueAt(i, 1).toString()).append(",");
+                    fw.append(model.getValueAt(i, 2).toString()).append(",");
+                    fw.append(model.getValueAt(i, 3).toString()).append(",");
+                    fw.append(model.getValueAt(i, 4).toString()).append("\n");
                 }
-                fw.append("\n");
             }
-            fw.close();
-
-            JOptionPane.showMessageDialog(this, "CSV exported!");
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
+            JOptionPane.showMessageDialog(this, "Exported to CSV: " + chooser.getSelectedFile().getName());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "CSV Error: " + ex.getMessage());
         }
     }
 
     private void exportPDF() {
-        try {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setSelectedFile(new File("students.pdf"));
-            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+        JOptionPane.showMessageDialog(this, "PDF Export disabled — add iTextPDF library to enable.");
 
-            com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
-            PdfWriter.getInstance(doc, new FileOutputStream(chooser.getSelectedFile()));
-            doc.open();
+        try {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            String fileName = "students_" + timestamp + ".pdf";
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setSelectedFile(new File(fileName));
+            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
+                return;
+
+            Document document = new Document();
+            PdfWriter.getInstance(document, new FileOutputStream(chooser.getSelectedFile()));
+            document.open();
 
             PdfPTable pdfTable = new PdfPTable(4);
-            pdfTable.addCell("ID");
-            pdfTable.addCell("Name");
+            pdfTable.addCell("Student ID");
+            pdfTable.addCell("Full Name");
             pdfTable.addCell("Course");
-            pdfTable.addCell("Year");
+            pdfTable.addCell("Year Level");
 
             for (int i = 0; i < model.getRowCount(); i++) {
-                for (int j = 0; j < model.getColumnCount(); j++) {
-                    pdfTable.addCell(model.getValueAt(i, j).toString());
-                }
+                pdfTable.addCell(model.getValueAt(i, 1).toString());
+                pdfTable.addCell(model.getValueAt(i, 2).toString());
+                pdfTable.addCell(model.getValueAt(i, 3).toString());
+                pdfTable.addCell(model.getValueAt(i, 4).toString());
             }
 
-            doc.add(pdfTable);
-            doc.close();
+            document.add(pdfTable);
+            document.close();
 
-            JOptionPane.showMessageDialog(this, "PDF exported!");
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
+            JOptionPane.showMessageDialog(this,
+                    "Students exported to PDF successfully!\nFile: " + chooser.getSelectedFile().getName());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error exporting PDF: " + ex.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 }

@@ -5,6 +5,7 @@ import javax.swing.*;
 import studentapp.history.HistoryPanel;
 import studentapp.home.HomePanel;
 import studentapp.settings.SettingsPanel;
+import studentapp.student.GradesOverviewPanel;
 import studentapp.student.StudentPanel;
 
 public class MainDashboard extends JFrame {
@@ -12,7 +13,7 @@ public class MainDashboard extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
 
-    private JButton btnHome, btnStudent, btnHistory, btnSettings;
+    private JButton btnHome, btnStudent, btnGrades, btnHistory, btnSettings;
     private JButton activeButton;
 
     private JButton userMenuBtn;
@@ -21,7 +22,7 @@ public class MainDashboard extends JFrame {
     private String currentRole = "Role";
 
     public MainDashboard() {
-        setTitle("Student Record System");
+        setTitle("Teacher Assistant System");
         setSize(1200, 700);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -62,9 +63,7 @@ public class MainDashboard extends JFrame {
 
         userMenu.add(logoutItem);
 
-        userMenuBtn.addActionListener(e ->
-                userMenu.show(userMenuBtn, 0, userMenuBtn.getHeight())
-        );
+        userMenuBtn.addActionListener(e -> userMenu.show(userMenuBtn, 0, userMenuBtn.getHeight()));
 
         JPanel rightHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         rightHeader.setOpaque(false);
@@ -84,12 +83,15 @@ public class MainDashboard extends JFrame {
 
         btnHome = navButton("Home");
         btnStudent = navButton("Student");
+        btnGrades = navButton("Manage Grades");
         btnHistory = navButton("History");
         btnSettings = navButton("Settings");
 
         sidebar.add(btnHome);
         sidebar.add(Box.createVerticalStrut(10));
         sidebar.add(btnStudent);
+        sidebar.add(Box.createVerticalStrut(10));
+        sidebar.add(btnGrades);
         sidebar.add(Box.createVerticalStrut(10));
         sidebar.add(btnHistory);
         sidebar.add(Box.createVerticalStrut(10));
@@ -103,6 +105,7 @@ public class MainDashboard extends JFrame {
 
         mainPanel.add(new HomePanel(), "home");
         mainPanel.add(new StudentPanel(), "student");
+        mainPanel.add(new GradesOverviewPanel(), "grades");
         mainPanel.add(new HistoryPanel(), "history");
         mainPanel.add(new SettingsPanel(), "settings");
 
@@ -111,6 +114,7 @@ public class MainDashboard extends JFrame {
         // ===== BUTTON ACTIONS =====
         btnHome.addActionListener(e -> switchPage(btnHome, "home"));
         btnStudent.addActionListener(e -> switchPage(btnStudent, "student"));
+        btnGrades.addActionListener(e -> switchPage(btnGrades, "grades"));
         btnHistory.addActionListener(e -> switchPage(btnHistory, "history"));
         btnSettings.addActionListener(e -> switchPage(btnSettings, "settings"));
 
@@ -132,7 +136,7 @@ public class MainDashboard extends JFrame {
     private JButton navButton(String text) {
         JButton btn = new JButton(text);
         btn.setMaximumSize(new Dimension(200, 45));
-        btn.setFont(new Font("Poppins", Font.PLAIN, 15));
+        btn.setFont(new Font("Poppins", Font.PLAIN, 18));
         btn.setForeground(Color.WHITE);
         btn.setBackground(new Color(44, 62, 80));
         btn.setFocusPainted(false);
@@ -173,8 +177,7 @@ public class MainDashboard extends JFrame {
                 this,
                 "Are you sure you want to logout?",
                 "Confirm Logout",
-                JOptionPane.YES_NO_OPTION
-        );
+                JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
             dispose();
@@ -186,10 +189,10 @@ public class MainDashboard extends JFrame {
         try {
             Font pop = Font.createFont(
                     Font.TRUETYPE_FONT,
-                    new java.io.File("src/main/resources/fonts/Poppins-Regular.ttf")
-            );
+                    new java.io.File("src/main/resources/fonts/Poppins-Regular.ttf"));
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(pop);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 }

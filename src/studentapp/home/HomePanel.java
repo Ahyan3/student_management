@@ -1,8 +1,11 @@
 package studentapp.home;
 
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.*;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class HomePanel extends JPanel {
 
@@ -11,6 +14,8 @@ public class HomePanel extends JPanel {
     private JLabel lblUpdates;
 
     private JButton btnRefresh;
+    private JPanel lastOpenedCard = null;
+    private CardLayout lastFlip = null;
 
     private final String DB_URL = "jdbc:mysql://localhost:3306/student_system";
     private final String DB_USER = "root";
@@ -56,9 +61,26 @@ public class HomePanel extends JPanel {
         lblNewStudents = new JLabel("0");
         lblUpdates = new JLabel("0");
 
-        statsPanel.add(createCard("Total Students", lblTotalStudents, new Color(52, 152, 219)));
-        statsPanel.add(createCard("New This Month", lblNewStudents, new Color(46, 204, 113)));
-        statsPanel.add(createCard("Updates Made", lblUpdates, new Color(155, 89, 182)));
+        statsPanel.add(createCard(
+                "Total Students",
+                lblTotalStudents,
+                new Color(52, 152, 219),
+                "SELECT student_id, fullname, course, year FROM students",
+                "students"));
+
+        statsPanel.add(createCard(
+                "New This Month",
+                lblNewStudents,
+                new Color(39, 174, 96),
+                "SELECT student_id, fullname, course, year FROM students WHERE MONTH(created_at)=MONTH(CURRENT_DATE())",
+                "students"));
+
+        statsPanel.add(createCard(
+                "Updates Made",
+                lblUpdates,
+                new Color(44, 62, 80),
+                "SELECT student_id, action, timestamp FROM update_logs",
+                "updates"));
 
         add(statsPanel, BorderLayout.CENTER);
 
@@ -66,13 +88,13 @@ public class HomePanel extends JPanel {
     }
 
     // ===== CARD DESIGN =====
-    private JPanel createCard(String title, JLabel value, Color accent) {
-        JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(230, 230, 230)),
-                BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
+    private JPanel createCard(String title, JLabel value, Color accent, String query, String type) {
+
+        JPanel frontCard = new JPanel(new BorderLayout());
+        frontCard.setBackground(Color.WHITE);
+        frontCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)));
 
         JPanel topAccent = new JPanel();
         topAccent.setBackground(accent);
@@ -83,14 +105,117 @@ public class HomePanel extends JPanel {
         value.setHorizontalAlignment(SwingConstants.CENTER);
 
         JLabel lblTitle = new JLabel(title, SwingConstants.CENTER);
-        lblTitle.setFont(new Font("Poppins", Font.PLAIN, 15));
+        lblTitle.setFont(new Font("Poppins", Font.BOLD, 18));
         lblTitle.setForeground(new Color(100, 100, 100));
 
-        card.add(topAccent, BorderLayout.NORTH);
-        card.add(value, BorderLayout.CENTER);
-        card.add(lblTitle, BorderLayout.SOUTH);
+        frontCard.add(topAccent, BorderLayout.NORTH);
+        frontCard.add(value, BorderLayout.CENTER);
+        frontCard.add(lblTitle, BorderLayout.SOUTH);
 
-        return card;
+        // Back table panel
+        JPanel backCard = createTablePanel(query, accent, title, type);
+
+        CardLayout flip = new CardLayout();
+        JPanel wrapper = new JPanel(flip);
+        wrapper.add(frontCard, "front");
+        wrapper.add(backCard, "back");
+
+        wrapper.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        wrapper.addMouseListener(new MouseAdapter() {
+            private boolean showingBack = false;
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+                if (lastOpenedCard != null && lastOpenedCard != wrapper) {
+                    lastFlip.show(lastOpenedCard, "front");
+                }
+
+                if (!showingBack) {
+                    flip.show(wrapper, "back");
+                } else {
+                    flip.show(wrapper, "front");
+                }
+
+                showingBack = !showingBack;
+                lastOpenedCard = wrapper;
+                lastFlip = flip;
+            }
+        });
+
+        return wrapper;
+    }
+
+    private JPanel createTablePanel(String query, Color accent, String title, String type) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel lbl = new JLabel(title + " - List", SwingConstants.CENTER);
+        lbl.setFont(new Font("Poppins", Font.BOLD, 18));
+        lbl.setForeground(accent);
+
+        DefaultTableModel model = new DefaultTableModel();
+        JTable table = new JTable(model);
+        table.setRowHeight(28);
+        table.getTableHeader().setFont(new Font("Poppins", Font.BOLD, 14));
+
+        JScrollPane scroll = new JScrollPane(table);
+
+        if (type.equals("updates")) {
+            model.addColumn("Student ID");
+            model.addColumn("Action");
+            model.addColumn("Timestamp");
+        } else {
+            model.addColumn("ID");
+            model.addColumn("Name");
+            model.addColumn("Course");
+            model.addColumn("Year");
+        }
+
+        JPopupMenu popup = new JPopupMenu();
+        JMenuItem viewProfile = new JMenuItem("View Profile");
+        popup.add(viewProfile);
+        table.setComponentPopupMenu(popup);
+
+        viewProfile.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row >= 0) {
+                String studentId = model.getValueAt(row, 0).toString();
+                JOptionPane.showMessageDialog(this, "Open profile for ID: " + studentId);
+            }
+        });
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
+            PreparedStatement pst = conn.prepareStatement(query);
+            ResultSet rs = pst.executeQuery();
+
+            while (rs.next()) {
+                if (type.equals("updates")) {
+                    model.addRow(new Object[] {
+                            rs.getInt("student_id"),
+                            rs.getString("action"),
+                            rs.getString("timestamp")
+                    });
+                } else {
+                    model.addRow(new Object[] {
+                            rs.getInt("student_id"),
+                            rs.getString("fullname"),
+                            rs.getString("course"),
+                            rs.getString("year")
+                    });
+                }
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Error loading list.");
+        }
+
+        panel.add(lbl, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+
+        return panel;
     }
 
     // ===== REFRESH UX =====
@@ -111,16 +236,19 @@ public class HomePanel extends JPanel {
             ResultSet rs;
 
             rs = conn.prepareStatement("SELECT COUNT(*) FROM students").executeQuery();
-            if (rs.next()) lblTotalStudents.setText(rs.getString(1));
+            if (rs.next())
+                lblTotalStudents.setText(rs.getString(1));
 
             rs = conn.prepareStatement(
-                "SELECT COUNT(*) FROM students WHERE MONTH(created_at)=MONTH(CURRENT_DATE()) " +
-                "AND YEAR(created_at)=YEAR(CURRENT_DATE())"
-            ).executeQuery();
-            if (rs.next()) lblNewStudents.setText(rs.getString(1));
+                    "SELECT COUNT(*) FROM students WHERE MONTH(created_at)=MONTH(CURRENT_DATE()) " +
+                            "AND YEAR(created_at)=YEAR(CURRENT_DATE())")
+                    .executeQuery();
+            if (rs.next())
+                lblNewStudents.setText(rs.getString(1));
 
             rs = conn.prepareStatement("SELECT COUNT(*) FROM update_logs").executeQuery();
-            if (rs.next()) lblUpdates.setText(rs.getString(1));
+            if (rs.next())
+                lblUpdates.setText(rs.getString(1));
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Failed to load dashboard data.");
@@ -131,6 +259,7 @@ public class HomePanel extends JPanel {
         try {
             Font font = Font.createFont(Font.TRUETYPE_FONT, new java.io.File(path));
             GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 }
