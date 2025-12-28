@@ -3,11 +3,20 @@ package studentapp.history;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import studentapp.database.DatabaseConnection;
+
+import com.itextpdf.text.Document;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 public class HistoryPanel extends JPanel {
 
@@ -16,29 +25,50 @@ public class HistoryPanel extends JPanel {
     private JComboBox<String> filterBox;
     private JTextField searchField;
 
+    private static final Color PRIMARY = new Color(52, 152, 219);
+    private static final Color SUCCESS = new Color(46, 204, 113);
+    private static final Color DANGER = new Color(231, 76, 60);
+
     public HistoryPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 244, 248));
+        setBackground(Color.WHITE);
 
-        // TITLE
+        // === HEADER: Title + Export Buttons ===
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setBorder(new EmptyBorder(30, 40, 20, 40));
+
         JLabel title = new JLabel("System Activity History");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 28));
         title.setForeground(new Color(44, 62, 80));
-        title.setBorder(BorderFactory.createEmptyBorder(40, 50, 30, 50));
-        add(title, BorderLayout.NORTH);
+        header.add(title, BorderLayout.WEST);
 
-        // MAIN CONTENT CARD
+        JPanel exportPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        exportPanel.setOpaque(false);
+
+        JButton pdfBtn = createStyledButton("Export PDF", DANGER);
+        JButton csvBtn = createStyledButton("Export CSV", SUCCESS);
+
+        pdfBtn.addActionListener(e -> exportToPDF());
+        csvBtn.addActionListener(e -> exportToCSV());
+
+        exportPanel.add(pdfBtn);
+        exportPanel.add(csvBtn);
+
+        header.add(exportPanel, BorderLayout.EAST);
+        add(header, BorderLayout.NORTH);
+
+        // === MAIN CARD ===
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
                 new EmptyBorder(40, 40, 40, 40)));
-        card.setPreferredSize(new Dimension(900, 600));
 
-        // TOP CONTROL BAR (Search + Filter + Refresh)
+        // === TOP CONTROL BAR: Filter + Search + Refresh ===
         JPanel controlBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
         controlBar.setBackground(Color.WHITE);
-        controlBar.setBorder(new EmptyBorder(0, 0, 20, 0));
+        controlBar.setBorder(new EmptyBorder(0, 0, 30, 0));
 
         JLabel filterLabel = new JLabel("Filter by Action:");
         filterLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -48,25 +78,21 @@ public class HistoryPanel extends JPanel {
 
         JLabel searchLabel = new JLabel("Search:");
         searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        searchField = new JTextField(25);
+        searchField = new JTextField(30);
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        searchField.setPreferredSize(new Dimension(300, 40));
+        searchField.setPreferredSize(new Dimension(350, 44));
 
-        JButton searchBtn = createStyledButton("Search", new Color(52, 152, 219));
-        JButton refreshBtn = createStyledButton("Refresh", new Color(46, 204, 113));
 
         controlBar.add(filterLabel);
         controlBar.add(filterBox);
         controlBar.add(Box.createHorizontalStrut(30));
         controlBar.add(searchLabel);
         controlBar.add(searchField);
-        controlBar.add(searchBtn);
-        controlBar.add(Box.createHorizontalStrut(10));
-        controlBar.add(refreshBtn);
+        controlBar.add(Box.createHorizontalStrut(20));
 
         card.add(controlBar, BorderLayout.NORTH);
 
-        // TABLE
+        // === TABLE ===
         model = new DefaultTableModel(new String[] { "Action", "Details", "Date & Time" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -75,7 +101,7 @@ public class HistoryPanel extends JPanel {
         };
 
         table = new JTable(model);
-        table.setRowHeight(40);
+        table.setRowHeight(48);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
         table.getTableHeader().setBackground(new Color(248, 249, 250));
@@ -86,34 +112,32 @@ public class HistoryPanel extends JPanel {
         scrollPane.setBorder(null);
         card.add(scrollPane, BorderLayout.CENTER);
 
-        // Wrap card in scroll for responsiveness
-        JScrollPane mainScroll = new JScrollPane(card);
-        mainScroll.setBorder(null);
-        mainScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        add(mainScroll, BorderLayout.CENTER);
+        add(card, BorderLayout.CENTER);
 
-        // ACTIONS
-        searchBtn.addActionListener(e -> searchHistory());
-        refreshBtn.addActionListener(e -> loadHistory());
-        filterBox.addActionListener(e -> filterHistory());
+        // === ACTIONS ===
+        filterBox.addActionListener(e -> applyFiltersAndSearch());
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { applyFiltersAndSearch(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { applyFiltersAndSearch(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { applyFiltersAndSearch(); }
+        });
 
-        loadHistory();
+        loadHistory(); // Initial load
     }
 
     private JButton createStyledButton(String text, Color bg) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btn.setBackground(bg);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(new EmptyBorder(12, 24, 12, 24));
+        btn.setBorder(new EmptyBorder(12, 28, 12, 28));
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
                 btn.setBackground(bg.brighter());
             }
-
             @Override
             public void mouseExited(MouseEvent e) {
                 btn.setBackground(bg);
@@ -126,37 +150,31 @@ public class HistoryPanel extends JPanel {
         runQuery("SELECT action, student_id, timestamp FROM update_logs ORDER BY timestamp DESC");
     }
 
-    private void filterHistory() {
-        String selected = (String) filterBox.getSelectedItem();
-        if ("All".equals(selected)) {
-            loadHistory();
-        } else {
-            runQuery("SELECT action, student_id, timestamp FROM update_logs WHERE action = '" + selected
-                    + "' ORDER BY timestamp DESC");
-        }
-    }
-
-    private void searchHistory() {
+    private void applyFiltersAndSearch() {
+        String selectedAction = (String) filterBox.getSelectedItem();
         String keyword = searchField.getText().trim();
-        if (keyword.isEmpty()) {
-            loadHistory();
-            return;
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT action, student_id, timestamp FROM update_logs WHERE 1=1");
+
+        if (!"All".equals(selectedAction)) {
+            sql.append(" AND action = '").append(selectedAction).append("'");
+        }
+        if (!keyword.isEmpty()) {
+            sql.append(" AND (action LIKE '%").append(keyword).append("%'")
+              .append(" OR student_id LIKE '%").append(keyword).append("%'")
+              .append(" OR timestamp LIKE '%").append(keyword).append("%')");
         }
 
-        String sql = "SELECT action, student_id, timestamp FROM update_logs " +
-                "WHERE action LIKE '%" + keyword + "%' " +
-                "OR student_id LIKE '%" + keyword + "%' " +
-                "OR timestamp LIKE '%" + keyword + "%' " +
-                "ORDER BY timestamp DESC";
-
-        runQuery(sql);
+        sql.append(" ORDER BY timestamp DESC");
+        runQuery(sql.toString());
     }
 
     private void runQuery(String sql) {
         model.setRowCount(0);
         try (Connection conn = DatabaseConnection.getConnection();
-                Statement st = conn.createStatement();
-                ResultSet rs = st.executeQuery(sql)) {
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
 
             while (rs.next()) {
                 String action = rs.getString("action");
@@ -176,5 +194,67 @@ public class HistoryPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Error loading history: " + e.getMessage(), "Database Error",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    // === EXPORT TO CSV ===
+    private void exportToCSV() {
+        try {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            String fileName = "activity_history_" + timestamp + ".csv";
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setSelectedFile(new File(fileName));
+            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+            try (FileWriter fw = new FileWriter(chooser.getSelectedFile())) {
+                fw.append("Action,Details,Date & Time\n");
+                for (int i = 0; i < model.getRowCount(); i++) {
+                    fw.append(model.getValueAt(i, 0).toString()).append(",");
+                    fw.append("\"").append(model.getValueAt(i, 1).toString().replace("\"", "\"\"")).append("\"").append(",");
+                    fw.append(model.getValueAt(i, 2).toString()).append("\n");
+                }
+            }
+            JOptionPane.showMessageDialog(this, "History exported to CSV successfully!");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "CSV Export Error: " + ex.getMessage());
+        }
+    }
+
+    // === EXPORT TO PDF ===
+    private void exportToPDF() {
+        try {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            String fileName = "activity_history_" + timestamp + ".pdf";
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setSelectedFile(new File(fileName));
+            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+            Document document = new Document();
+            PdfWriter.getInstance(document, new FileOutputStream(chooser.getSelectedFile()));
+            document.open();
+
+            PdfPTable pdfTable = new PdfPTable(3);
+            pdfTable.addCell("Action");
+            pdfTable.addCell("Details");
+            pdfTable.addCell("Date & Time");
+
+            for (int i = 0; i < model.getRowCount(); i++) {
+                pdfTable.addCell(model.getValueAt(i, 0).toString());
+                pdfTable.addCell(model.getValueAt(i, 1).toString());
+                pdfTable.addCell(model.getValueAt(i, 2).toString());
+            }
+
+            document.add(pdfTable);
+            document.close();
+
+            JOptionPane.showMessageDialog(this, "History exported to PDF successfully!");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "PDF Export Error: " + ex.getMessage());
+        }
+    }
+
+    public void refresh() {
+        loadHistory();
     }
 }

@@ -1,265 +1,171 @@
 package studentapp.home;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.sql.*;
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.border.EmptyBorder;
+import studentapp.database.DatabaseConnection;
 
 public class HomePanel extends JPanel {
 
     private JLabel lblTotalStudents;
-    private JLabel lblNewStudents;
-    private JLabel lblUpdates;
-
-    private JButton btnRefresh;
-    private JPanel lastOpenedCard = null;
-    private CardLayout lastFlip = null;
-
-    private final String DB_URL = "jdbc:mysql://localhost:3306/student_system";
-    private final String DB_USER = "root";
-    private final String DB_PASS = "";
+    private JLabel lblNewThisMonth;
+    private JLabel lblActiveBlocks;
+    private JLabel lblEmptyBlocks;
+    private JLabel lblFirstSem;
+    private JLabel lblSecondSem;
+    private JLabel lblSummer;
+    private JLabel lblFirstYear;
+    private JLabel lblSecondYear;
+    private JLabel lblThirdYear;
+    private JLabel lblFourthYear;
 
     public HomePanel() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        loadCustomFont("src/main/resources/fonts/Poppins-Regular.ttf");
-        loadCustomFont("src/main/resources/fonts/Poppins-Bold.ttf");
+        // === HEADER ===
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setBorder(new EmptyBorder(30, 40, 20, 40));
 
-        // ===== TOP BAR =====
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(Color.WHITE);
-        topPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 10, 25));
+        JLabel title = new JLabel("Overview");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        title.setForeground(new Color(44, 62, 80));
+        header.add(title, BorderLayout.WEST);
 
-        JLabel title = new JLabel("Dashboard Overview");
-        title.setFont(new Font("Poppins", Font.BOLD, 26));
+        add(header, BorderLayout.NORTH);
 
-        btnRefresh = new JButton("Refresh");
-        btnRefresh.setFont(new Font("Poppins", Font.BOLD, 14));
-        btnRefresh.setForeground(Color.WHITE);
-        btnRefresh.setBackground(new Color(52, 152, 219));
-        btnRefresh.setFocusPainted(false);
-        btnRefresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnRefresh.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
-        btnRefresh.setToolTipText("Refresh dashboard data");
+        // === GRID ===
+        JPanel grid = new JPanel(new GridBagLayout());
+        grid.setBackground(Color.WHITE);
+        grid.setBorder(new EmptyBorder(20, 40, 50, 40));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.insets = new Insets(15, 15, 15, 15);
 
-        btnRefresh.addActionListener(e -> refreshDashboard());
+        // === ROW 1: 4 cards ===
+        lblTotalStudents = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("Total Students", lblTotalStudents, new Color(52, 152, 219)), setGbc(gbc, 0, 0));
 
-        topPanel.add(title, BorderLayout.WEST);
-        topPanel.add(btnRefresh, BorderLayout.EAST);
+        lblNewThisMonth = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("New This Month", lblNewThisMonth, new Color(39, 174, 96)), setGbc(gbc, 1, 0));
 
-        add(topPanel, BorderLayout.NORTH);
+        lblActiveBlocks = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("Active Blocks", lblActiveBlocks, new Color(155, 89, 182)), setGbc(gbc, 2, 0));
 
-        // ===== STATS =====
-        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 20, 20));
-        statsPanel.setBackground(Color.WHITE);
-        statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 25, 25));
+        lblEmptyBlocks = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("Empty Blocks", lblEmptyBlocks, new Color(149, 165, 166)), setGbc(gbc, 3, 0));
 
-        lblTotalStudents = new JLabel("0");
-        lblNewStudents = new JLabel("0");
-        lblUpdates = new JLabel("0");
+        // === ROW 2: 3 semester cards ===
+        lblFirstSem = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("1st Semester Students", lblFirstSem, new Color(241, 196, 15)), setGbc(gbc, 0, 1, 2)); // spans 2 columns
 
-        statsPanel.add(createCard(
-                "Total Students",
-                lblTotalStudents,
-                new Color(52, 152, 219),
-                "SELECT student_id, fullname, course, year FROM students",
-                "students"));
+        lblSecondSem = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("2nd Semester Students", lblSecondSem, new Color(230, 126, 34)), setGbc(gbc, 2, 1));
 
-        statsPanel.add(createCard(
-                "New This Month",
-                lblNewStudents,
-                new Color(39, 174, 96),
-                "SELECT student_id, fullname, course, year FROM students WHERE MONTH(created_at)=MONTH(CURRENT_DATE())",
-                "students"));
+        lblSummer = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("Summer Students", lblSummer, new Color(231, 76, 60)), setGbc(gbc, 3, 1));
 
-        statsPanel.add(createCard(
-                "Updates Made",
-                lblUpdates,
-                new Color(44, 62, 80),
-                "SELECT student_id, action, timestamp FROM update_logs",
-                "updates"));
+        // === ROW 3: 4 year level cards ===
+        lblFirstYear = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("1st Year Students", lblFirstYear, new Color(46, 204, 113)), setGbc(gbc, 0, 2));
 
-        add(statsPanel, BorderLayout.CENTER);
+        lblSecondYear = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("2nd Year Students", lblSecondYear, new Color(52, 152, 219)), setGbc(gbc, 1, 2));
 
-        loadDashboardStats();
+        lblThirdYear = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("3rd Year Students", lblThirdYear, new Color(155, 89, 182)), setGbc(gbc, 2, 2));
+
+        lblFourthYear = new JLabel("0", SwingConstants.CENTER);
+        grid.add(createStatCard("4th Year Students", lblFourthYear, new Color(231, 76, 60)), setGbc(gbc, 3, 2));
+
+        JScrollPane scroll = new JScrollPane(grid);
+        scroll.setBorder(null);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        add(scroll, BorderLayout.CENTER);
+
+        refresh(); // Auto load
     }
 
-    // ===== CARD DESIGN =====
-    private JPanel createCard(String title, JLabel value, Color accent, String query, String type) {
+    private GridBagConstraints setGbc(GridBagConstraints gbc, int x, int y) {
+        return setGbc(gbc, x, y, 1);
+    }
 
-        JPanel frontCard = new JPanel(new BorderLayout());
-        frontCard.setBackground(Color.WHITE);
-        frontCard.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
-                BorderFactory.createEmptyBorder(20, 20, 20, 20)));
+    private GridBagConstraints setGbc(GridBagConstraints gbc, int x, int y, int width) {
+        gbc.gridx = x;
+        gbc.gridy = y;
+        gbc.gridwidth = width;
+        return gbc;
+    }
 
-        JPanel topAccent = new JPanel();
-        topAccent.setBackground(accent);
-        topAccent.setPreferredSize(new Dimension(10, 5));
+    private JPanel createStatCard(String title, JLabel valueLabel, Color accent) {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+                new EmptyBorder(30, 30, 30, 30)));
 
-        value.setFont(new Font("Poppins", Font.BOLD, 36));
-        value.setForeground(accent);
-        value.setHorizontalAlignment(SwingConstants.CENTER);
+        JPanel accentBar = new JPanel();
+        accentBar.setBackground(accent);
+        accentBar.setPreferredSize(new Dimension(0, 8));
 
-        JLabel lblTitle = new JLabel(title, SwingConstants.CENTER);
-        lblTitle.setFont(new Font("Poppins", Font.BOLD, 18));
-        lblTitle.setForeground(new Color(100, 100, 100));
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 48));
+        valueLabel.setForeground(accent);
+        valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        frontCard.add(topAccent, BorderLayout.NORTH);
-        frontCard.add(value, BorderLayout.CENTER);
-        frontCard.add(lblTitle, BorderLayout.SOUTH);
+        JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setForeground(new Color(80, 80, 80));
 
-        // Back table panel
-        JPanel backCard = createTablePanel(query, accent, title, type);
+        card.add(accentBar, BorderLayout.NORTH);
+        card.add(valueLabel, BorderLayout.CENTER);
+        card.add(titleLabel, BorderLayout.SOUTH);
 
-        CardLayout flip = new CardLayout();
-        JPanel wrapper = new JPanel(flip);
-        wrapper.add(frontCard, "front");
-        wrapper.add(backCard, "back");
+        return card;
+    }
 
-        wrapper.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    public void refresh() {
+        try (Connection conn = DatabaseConnection.getConnection()) {
 
-        wrapper.addMouseListener(new MouseAdapter() {
-            private boolean showingBack = false;
+            // Total Students
+            lblTotalStudents.setText(count(conn, "SELECT COUNT(*) FROM students"));
 
-            @Override
-            public void mouseClicked(MouseEvent e) {
+            // New This Month
+            lblNewThisMonth.setText(count(conn,
+                    "SELECT COUNT(*) FROM students WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())"));
 
-                if (lastOpenedCard != null && lastOpenedCard != wrapper) {
-                    lastFlip.show(lastOpenedCard, "front");
-                }
+            // Semesters
+            lblFirstSem.setText(count(conn, "SELECT COUNT(*) FROM students WHERE semester = '1st Semester'"));
+            lblSecondSem.setText(count(conn, "SELECT COUNT(*) FROM students WHERE semester = '2nd Semester'"));
+            lblSummer.setText(count(conn, "SELECT COUNT(*) FROM students WHERE semester = 'Summer'"));
 
-                if (!showingBack) {
-                    flip.show(wrapper, "back");
-                } else {
-                    flip.show(wrapper, "front");
-                }
+            // Year Levels
+            lblFirstYear.setText(count(conn, "SELECT COUNT(*) FROM students WHERE year = '1st Year'"));
+            lblSecondYear.setText(count(conn, "SELECT COUNT(*) FROM students WHERE year = '2nd Year'"));
+            lblThirdYear.setText(count(conn, "SELECT COUNT(*) FROM students WHERE year = '3rd Year'"));
+            lblFourthYear.setText(count(conn, "SELECT COUNT(*) FROM students WHERE year = '4th Year'"));
 
-                showingBack = !showingBack;
-                lastOpenedCard = wrapper;
-                lastFlip = flip;
+            // Active & Empty Blocks
+            int active = 0;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT COUNT(DISTINCT block) FROM students WHERE block IS NOT NULL AND block != ''");
+                 ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) active = rs.getInt(1);
             }
-        });
-
-        return wrapper;
-    }
-
-    private JPanel createTablePanel(String query, Color accent, String title, String type) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JLabel lbl = new JLabel(title + " - List", SwingConstants.CENTER);
-        lbl.setFont(new Font("Poppins", Font.BOLD, 18));
-        lbl.setForeground(accent);
-
-        DefaultTableModel model = new DefaultTableModel();
-        JTable table = new JTable(model);
-        table.setRowHeight(28);
-        table.getTableHeader().setFont(new Font("Poppins", Font.BOLD, 14));
-
-        JScrollPane scroll = new JScrollPane(table);
-
-        if (type.equals("updates")) {
-            model.addColumn("Student ID");
-            model.addColumn("Action");
-            model.addColumn("Timestamp");
-        } else {
-            model.addColumn("ID");
-            model.addColumn("Name");
-            model.addColumn("Course");
-            model.addColumn("Year");
-        }
-
-        JPopupMenu popup = new JPopupMenu();
-        JMenuItem viewProfile = new JMenuItem("View Profile");
-        popup.add(viewProfile);
-        table.setComponentPopupMenu(popup);
-
-        viewProfile.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if (row >= 0) {
-                String studentId = model.getValueAt(row, 0).toString();
-                JOptionPane.showMessageDialog(this, "Open profile for ID: " + studentId);
-            }
-        });
-
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
-            PreparedStatement pst = conn.prepareStatement(query);
-            ResultSet rs = pst.executeQuery();
-
-            while (rs.next()) {
-                if (type.equals("updates")) {
-                    model.addRow(new Object[] {
-                            rs.getInt("student_id"),
-                            rs.getString("action"),
-                            rs.getString("timestamp")
-                    });
-                } else {
-                    model.addRow(new Object[] {
-                            rs.getInt("student_id"),
-                            rs.getString("fullname"),
-                            rs.getString("course"),
-                            rs.getString("year")
-                    });
-                }
-            }
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(null, "Error loading list.");
-        }
-
-        panel.add(lbl, BorderLayout.NORTH);
-        panel.add(scroll, BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    // ===== REFRESH UX =====
-    private void refreshDashboard() {
-        btnRefresh.setEnabled(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-
-        SwingUtilities.invokeLater(() -> {
-            loadDashboardStats();
-            btnRefresh.setEnabled(true);
-            setCursor(Cursor.getDefaultCursor());
-        });
-    }
-
-    private void loadDashboardStats() {
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
-
-            ResultSet rs;
-
-            rs = conn.prepareStatement("SELECT COUNT(*) FROM students").executeQuery();
-            if (rs.next())
-                lblTotalStudents.setText(rs.getString(1));
-
-            rs = conn.prepareStatement(
-                    "SELECT COUNT(*) FROM students WHERE MONTH(created_at)=MONTH(CURRENT_DATE()) " +
-                            "AND YEAR(created_at)=YEAR(CURRENT_DATE())")
-                    .executeQuery();
-            if (rs.next())
-                lblNewStudents.setText(rs.getString(1));
-
-            rs = conn.prepareStatement("SELECT COUNT(*) FROM update_logs").executeQuery();
-            if (rs.next())
-                lblUpdates.setText(rs.getString(1));
+            lblActiveBlocks.setText(String.valueOf(active));
+            lblEmptyBlocks.setText(String.valueOf(10 - active)); // A to J = 10 blocks
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Failed to load dashboard data.");
+            JOptionPane.showMessageDialog(this, "Failed to load dashboard data: " + e.getMessage());
         }
     }
 
-    private void loadCustomFont(String path) {
-        try {
-            Font font = Font.createFont(Font.TRUETYPE_FONT, new java.io.File(path));
-            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
-        } catch (Exception ignored) {
+    private String count(Connection conn, String sql) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getString(1) : "0";
         }
     }
 }

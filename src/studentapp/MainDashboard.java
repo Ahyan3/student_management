@@ -21,10 +21,14 @@ public class MainDashboard extends JFrame {
     private String currentUser = "User";
     private String currentRole = "Role";
 
+    private HomePanel homePanel;
+    private StudentPanel studentPanel;
+    private HistoryPanel historyPanel;
+    private GradesOverviewPanel gradesOverviewPanel;
+
     public MainDashboard() {
         setTitle("Teacher Assistant System");
-        setSize(1200, 700);
-        setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -36,7 +40,7 @@ public class MainDashboard extends JFrame {
         header.setPreferredSize(new Dimension(getWidth(), 60));
         header.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        JLabel lblTitle = new JLabel("Student Record System");
+        JLabel lblTitle = new JLabel("Teacher Assistant System");
         lblTitle.setFont(new Font("Poppins", Font.BOLD, 20));
         lblTitle.setForeground(Color.WHITE);
 
@@ -48,8 +52,6 @@ public class MainDashboard extends JFrame {
         userMenuBtn.setFocusPainted(false);
         userMenuBtn.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
         userMenuBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        // Remove default button look
         userMenuBtn.setContentAreaFilled(false);
         userMenuBtn.setOpaque(false);
 
@@ -71,7 +73,6 @@ public class MainDashboard extends JFrame {
 
         header.add(lblTitle, BorderLayout.WEST);
         header.add(rightHeader, BorderLayout.EAST);
-
         add(header, BorderLayout.NORTH);
 
         // ===== SIDEBAR =====
@@ -103,19 +104,43 @@ public class MainDashboard extends JFrame {
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        mainPanel.add(new HomePanel(), "home");
-        mainPanel.add(new StudentPanel(), "student");
-        mainPanel.add(new GradesOverviewPanel(), "grades");
-        mainPanel.add(new HistoryPanel(), "history");
+        homePanel = new HomePanel();
+        mainPanel.add(homePanel, "home");
+
+        studentPanel = new StudentPanel();
+        mainPanel.add(studentPanel, "student");
+
+        gradesOverviewPanel = new GradesOverviewPanel();
+        mainPanel.add(gradesOverviewPanel, "grades");
+
+        historyPanel = new HistoryPanel();
+        mainPanel.add(historyPanel, "history");
+
         mainPanel.add(new SettingsPanel(), "settings");
 
         add(mainPanel, BorderLayout.CENTER);
 
         // ===== BUTTON ACTIONS =====
-        btnHome.addActionListener(e -> switchPage(btnHome, "home"));
-        btnStudent.addActionListener(e -> switchPage(btnStudent, "student"));
-        btnGrades.addActionListener(e -> switchPage(btnGrades, "grades"));
-        btnHistory.addActionListener(e -> switchPage(btnHistory, "history"));
+        btnHome.addActionListener(e -> {
+            switchPage(btnHome, "home");
+            homePanel.refresh();
+        });
+
+        btnStudent.addActionListener(e -> {
+            switchPage(btnStudent, "student");
+            studentPanel.refresh(); // Refresh student list
+        });
+
+        btnGrades.addActionListener(e -> {
+            switchPage(btnGrades, "grades");
+            gradesOverviewPanel.refresh(); // ← Now calls the correct refresh() method
+        });
+
+        btnHistory.addActionListener(e -> {
+            switchPage(btnHistory, "history");
+            historyPanel.refresh();
+        });
+
         btnSettings.addActionListener(e -> switchPage(btnSettings, "settings"));
 
         switchPage(btnHome, "home");
@@ -129,7 +154,7 @@ public class MainDashboard extends JFrame {
         this.currentUser = username;
         this.currentRole = role;
 
-        userMenuBtn.setText(username + " (" + role + ") ▾");
+        userMenuBtn.setText(username + " (" + role + ") ");
     }
 
     // ===== SIDEBAR BUTTON =====

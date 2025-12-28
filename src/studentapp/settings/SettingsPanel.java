@@ -8,23 +8,33 @@ import javax.swing.border.EmptyBorder;
 import studentapp.auth.LoginForm;
 import studentapp.database.DatabaseConnection;
 
+
 public class SettingsPanel extends JPanel {
+
+    private static final Color PRIMARY = new Color(52, 152, 219);
+    private static final Color SUCCESS = new Color(46, 204, 113);
+    private static final Color WARNING = new Color(241, 196, 15);
+    private static final Color DANGER = new Color(231, 76, 60);
 
     public SettingsPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 244, 248));
+        setBackground(Color.WHITE);
 
-        // TITLE
+        // === HEADER: Title + Export Buttons ===
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setBorder(new EmptyBorder(30, 40, 20, 40));
+
         JLabel title = new JLabel("Settings & System Controls");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 28));
         title.setForeground(new Color(44, 62, 80));
-        title.setBorder(new EmptyBorder(40, 50, 20, 50));
-        title.setHorizontalAlignment(SwingConstants.CENTER);
-        add(title, BorderLayout.NORTH);
+        header.add(title, BorderLayout.WEST);
 
-        // MAIN CONTENT - 3 Cards Side by Side
+        add(header, BorderLayout.NORTH);
+
+        // === MAIN CONTENT: 3 Cards ===
         JPanel main = new JPanel(new GridBagLayout());
-        main.setBackground(new Color(240, 244, 248));
+        main.setBackground(Color.WHITE);
         main.setBorder(new EmptyBorder(20, 50, 50, 50));
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -45,7 +55,7 @@ public class SettingsPanel extends JPanel {
         gbc.gridx = 1;
         main.add(dbCard, gbc);
 
-        // CARD 3: Account & Exit
+        // CARD 3: Account & System
         JPanel accountCard = createSettingsCard("Account & System");
         addAccountControls(accountCard);
         gbc.gridx = 2;
@@ -79,7 +89,7 @@ public class SettingsPanel extends JPanel {
 
     private JButton createStyledButton(String text, Color bg) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btn.setBackground(bg);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
@@ -97,13 +107,11 @@ public class SettingsPanel extends JPanel {
     }
 
     private void addAdminControls(JPanel card) {
-        // Change Password Button
-        JButton changePassBtn = createStyledButton("Change Admin Password", new Color(52, 152, 219));
+        JButton changePassBtn = createStyledButton("Change Admin Password", PRIMARY);
         changePassBtn.addActionListener(e -> openChangePasswordDialog());
         card.add(changePassBtn);
         card.add(Box.createVerticalStrut(20));
 
-        // Create New Admin
         JLabel userLabel = new JLabel("New Admin Username:");
         userLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
         userLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -111,8 +119,8 @@ public class SettingsPanel extends JPanel {
         txtAdminUser.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
         txtAdminUser.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         txtAdminUser.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200)),
-                new EmptyBorder(10, 14, 10, 14)
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
+                new EmptyBorder(12, 16, 12, 16)
         ));
 
         JLabel passLabel = new JLabel("New Admin Password:");
@@ -131,7 +139,7 @@ public class SettingsPanel extends JPanel {
         txtAdminConfirm.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         txtAdminConfirm.setBorder(txtAdminUser.getBorder());
 
-        JButton btnAddAdmin = createStyledButton("Create New Admin", new Color(46, 204, 113));
+        JButton btnAddAdmin = createStyledButton("Create New Admin", SUCCESS);
 
         card.add(userLabel);
         card.add(Box.createVerticalStrut(8));
@@ -166,9 +174,9 @@ public class SettingsPanel extends JPanel {
     }
 
     private void addDatabaseControls(JPanel card) {
-        JButton btnClearStudents = createStyledButton("Delete All Students", new Color(241, 196, 15));
-        JButton btnClearLogs = createStyledButton("Clear All Logs", new Color(241, 196, 15));
-        JButton btnResetAll = createStyledButton("FULL DATABASE RESET", new Color(231, 76, 60));
+        JButton btnClearStudents = createStyledButton("Delete All Students", WARNING);
+        JButton btnClearLogs = createStyledButton("Clear All Logs", WARNING);
+        JButton btnResetAll = createStyledButton("FULL DATABASE RESET", DANGER);
 
         card.add(btnClearStudents);
         card.add(Box.createVerticalStrut(15));
@@ -185,9 +193,10 @@ public class SettingsPanel extends JPanel {
         JButton btnLogout = createStyledButton("Logout", new Color(108, 117, 125));
         btnLogout.addActionListener(e -> logout());
         card.add(btnLogout);
+        card.add(Box.createVerticalGlue()); // Push logout to top
     }
 
-    // === DATABASE OPERATIONS ===
+    // === DATABASE OPERATIONS (unchanged) ===
     private void createAdmin(String user, String pass) {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(
@@ -202,10 +211,10 @@ public class SettingsPanel extends JPanel {
     }
 
     private void clearStudents() {
-        if (confirmDanger("This will permanently DELETE ALL student records!")) {
+        if (confirmDanger("This will permanently DELETE ALL student records and grades!")) {
             try (Connection conn = DatabaseConnection.getConnection()) {
+                conn.prepareStatement("DELETE FROM grades").executeUpdate();
                 conn.prepareStatement("DELETE FROM students").executeUpdate();
-                conn.prepareStatement("DELETE FROM grades").executeUpdate(); // Also clear grades
                 JOptionPane.showMessageDialog(this, "All students and grades deleted.");
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
@@ -230,7 +239,7 @@ public class SettingsPanel extends JPanel {
                 conn.prepareStatement("DELETE FROM update_logs").executeUpdate();
                 conn.prepareStatement("DELETE FROM grades").executeUpdate();
                 conn.prepareStatement("DELETE FROM students").executeUpdate();
-                conn.prepareStatement("DELETE FROM users WHERE username != 'admin1'").executeUpdate(); // Keep default admin
+                conn.prepareStatement("DELETE FROM users WHERE username != 'admin1'").executeUpdate();
 
                 JOptionPane.showMessageDialog(this, "Database fully reset!\nDefault admin preserved.");
             } catch (Exception e) {
@@ -269,7 +278,7 @@ public class SettingsPanel extends JPanel {
         txtNew.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         txtConfirm.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         txtNew.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
                 new EmptyBorder(12, 16, 12, 16)
         ));
         txtConfirm.setBorder(txtNew.getBorder());
@@ -279,7 +288,7 @@ public class SettingsPanel extends JPanel {
         gbc.gridy = 2; dialog.add(new JLabel("Confirm Password:"), gbc);
         gbc.gridy = 3; dialog.add(txtConfirm, gbc);
 
-        JButton btnUpdate = createStyledButton("Update Password", new Color(46, 204, 113));
+        JButton btnUpdate = createStyledButton("Update Password", SUCCESS);
         gbc.gridy = 4; gbc.gridwidth = 2;
         gbc.insets = new Insets(20, 10, 10, 10);
         dialog.add(btnUpdate, gbc);
@@ -303,9 +312,13 @@ public class SettingsPanel extends JPanel {
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement("UPDATE users SET password = ?")) {
                 ps.setString(1, newPass);
-                ps.executeUpdate();
-                JOptionPane.showMessageDialog(dialog, "Password updated successfully!");
-                dialog.dispose();
+                int updated = ps.executeUpdate();
+                if (updated > 0) {
+                    JOptionPane.showMessageDialog(dialog, "Password updated successfully!");
+                    dialog.dispose();
+                } else {
+                    msg.setText("No users found to update.");
+                }
             } catch (Exception ex) {
                 msg.setText("Error: " + ex.getMessage());
             }
