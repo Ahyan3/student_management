@@ -19,17 +19,22 @@ public class HomePanel extends JPanel {
     private JLabel lblSecondYear;
     private JLabel lblThirdYear;
     private JLabel lblFourthYear;
+    private static final Color BG_MAIN = new Color(245, 246, 250);
+    Color PRIMARY = new Color(52, 152, 219);   // Blue
+    Color NEUTRAL = new Color(149, 165, 166);  // Soft gray
+
+
 
     public HomePanel() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(BG_MAIN);
 
         // === HEADER ===
         JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(Color.WHITE);
+        header.setBackground(BG_MAIN);
         header.setBorder(new EmptyBorder(30, 40, 20, 40));
 
-        JLabel title = new JLabel("Overview");
+        JLabel title = new JLabel("Dashboard Overview");
         title.setFont(new Font("Segoe UI", Font.BOLD, 28));
         title.setForeground(new Color(44, 62, 80));
         header.add(title, BorderLayout.WEST);
@@ -45,41 +50,42 @@ public class HomePanel extends JPanel {
         gbc.weightx = 1.0;
         gbc.insets = new Insets(15, 15, 15, 15);
 
-        // === ROW 1: 4 cards ===
-        lblTotalStudents = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("Total Students", lblTotalStudents, new Color(52, 152, 219)), setGbc(gbc, 0, 0));
+// === ROW 1: 4 cards ===
+lblTotalStudents = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("Total Students", lblTotalStudents, PRIMARY), setGbc(gbc, 0, 0));
 
-        lblNewThisMonth = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("New This Month", lblNewThisMonth, new Color(39, 174, 96)), setGbc(gbc, 1, 0));
+lblNewThisMonth = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("New This Month", lblNewThisMonth, PRIMARY), setGbc(gbc, 1, 0));
 
-        lblActiveBlocks = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("Active Blocks", lblActiveBlocks, new Color(155, 89, 182)), setGbc(gbc, 2, 0));
+lblActiveBlocks = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("Active Blocks", lblActiveBlocks, PRIMARY), setGbc(gbc, 2, 0));
 
-        lblEmptyBlocks = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("Empty Blocks", lblEmptyBlocks, new Color(149, 165, 166)), setGbc(gbc, 3, 0));
+lblEmptyBlocks = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("Empty Blocks", lblEmptyBlocks, NEUTRAL), setGbc(gbc, 3, 0));
 
-        // === ROW 2: 3 semester cards ===
-        lblFirstSem = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("1st Semester Students", lblFirstSem, new Color(241, 196, 15)), setGbc(gbc, 0, 1, 2)); // spans 2 columns
+// === ROW 2: semester cards ===
+lblFirstSem = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("1st Semester Students", lblFirstSem, PRIMARY), setGbc(gbc, 0, 1, 2));
 
-        lblSecondSem = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("2nd Semester Students", lblSecondSem, new Color(230, 126, 34)), setGbc(gbc, 2, 1));
+lblSecondSem = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("2nd Semester Students", lblSecondSem, PRIMARY), setGbc(gbc, 2, 1));
 
-        lblSummer = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("Summer Students", lblSummer, new Color(231, 76, 60)), setGbc(gbc, 3, 1));
+lblSummer = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("Summer Students", lblSummer, NEUTRAL), setGbc(gbc, 3, 1));
 
-        // === ROW 3: 4 year level cards ===
-        lblFirstYear = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("1st Year Students", lblFirstYear, new Color(46, 204, 113)), setGbc(gbc, 0, 2));
+// === ROW 3: year level cards ===
+lblFirstYear = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("1st Year Students", lblFirstYear, PRIMARY), setGbc(gbc, 0, 2));
 
-        lblSecondYear = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("2nd Year Students", lblSecondYear, new Color(52, 152, 219)), setGbc(gbc, 1, 2));
+lblSecondYear = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("2nd Year Students", lblSecondYear, PRIMARY), setGbc(gbc, 1, 2));
 
-        lblThirdYear = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("3rd Year Students", lblThirdYear, new Color(155, 89, 182)), setGbc(gbc, 2, 2));
+lblThirdYear = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("3rd Year Students", lblThirdYear, PRIMARY), setGbc(gbc, 2, 2));
 
-        lblFourthYear = new JLabel("0", SwingConstants.CENTER);
-        grid.add(createStatCard("4th Year Students", lblFourthYear, new Color(231, 76, 60)), setGbc(gbc, 3, 2));
+lblFourthYear = new JLabel("0", SwingConstants.CENTER);
+grid.add(createStatCard("4th Year Students", lblFourthYear, NEUTRAL), setGbc(gbc, 3, 2));
+
 
         JScrollPane scroll = new JScrollPane(grid);
         scroll.setBorder(null);
@@ -100,31 +106,38 @@ public class HomePanel extends JPanel {
         return gbc;
     }
 
-    private JPanel createStatCard(String title, JLabel valueLabel, Color accent) {
-        JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
-                new EmptyBorder(30, 30, 30, 30)));
+private JPanel createStatCard(String title, JLabel valueLabel, Color accent) {
+    JPanel card = new JPanel(new BorderLayout());
+    card.setOpaque(false); // ← KEY: allow transparency
 
-        JPanel accentBar = new JPanel();
-        accentBar.setBackground(accent);
-        accentBar.setPreferredSize(new Dimension(0, 8));
+    // Semi-transparent background panel
+    JPanel content = new JPanel(new BorderLayout());
+    content.setBackground(new Color(255, 255, 255, 180)); // transparent white
+    content.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220, 180), 1),
+            new EmptyBorder(30, 30, 30, 30)
+    ));
 
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 48));
-        valueLabel.setForeground(accent);
-        valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    JPanel accentBar = new JPanel();
+    accentBar.setBackground(accent);
+    accentBar.setPreferredSize(new Dimension(0, 8));
 
-        JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(80, 80, 80));
+    valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 48));
+    valueLabel.setForeground(accent);
+    valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        card.add(accentBar, BorderLayout.NORTH);
-        card.add(valueLabel, BorderLayout.CENTER);
-        card.add(titleLabel, BorderLayout.SOUTH);
+    JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+    titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+    titleLabel.setForeground(new Color(80, 80, 80));
 
-        return card;
-    }
+    content.add(valueLabel, BorderLayout.CENTER);
+    content.add(titleLabel, BorderLayout.SOUTH);
+
+    card.add(accentBar, BorderLayout.NORTH);
+    card.add(content, BorderLayout.CENTER);
+
+    return card;
+}
 
     public void refresh() {
         try (Connection conn = DatabaseConnection.getConnection()) {

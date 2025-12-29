@@ -11,7 +11,7 @@ public class ModernButton extends JButton {
     public ModernButton(String text) {
         super(text);
         setFont(AppFonts.poppinsBold(16));
-        setForeground(Color.WHITE);
+        setForeground(Color.DARK_GRAY);
         setBackground(AppColors.PRIMARY);
         setFocusPainted(false);
         setBorderPainted(false);

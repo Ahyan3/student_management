@@ -26,9 +26,11 @@ public class GradePanel extends JPanel {
     private String studentId;
     private String fullName;
     private String year;
+    
+    private static final Color PRIMARY = new Color(41, 128, 185);   // darker blue
+    private static final Color SUCCESS = new Color(39, 174, 96);    // darker green
+    private static final Color DANGER  = new Color(192, 57, 43);    // darker red
 
-    private static final Color SUCCESS = new Color(46, 204, 113);
-    private static final Color DANGER = new Color(231, 76, 60);
 
     public GradePanel(String studentId) {
         this.studentId = studentId;
@@ -41,7 +43,7 @@ public class GradePanel extends JPanel {
         // === HEADER: Title + Export Buttons ===
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(Color.WHITE);
-        header.setBorder(new EmptyBorder(30, 50, 20, 50));
+        header.setBorder(new EmptyBorder(30, 40, 20, 40));
 
         String titleText = "Edit Grades - " + fullName + " (ID: " + studentId + ")" +
                 (year != null && !year.isEmpty() ? ", " + year : "");
@@ -88,7 +90,7 @@ public class GradePanel extends JPanel {
         addFormRow(form, gbc, "Prefinal Grade:", txtPrefinal, 2);
         addFormRow(form, gbc, "Finals Grade:", txtFinals, 3);
 
-        JButton saveBtn = createStyledButton("Save All Grades", SUCCESS);
+        JButton saveBtn = createStyledButton("Save All Grades", PRIMARY);
         saveBtn.setPreferredSize(new Dimension(300, 56));
         saveBtn.setFont(new Font("Segoe UI", Font.BOLD, 20));
 
@@ -146,26 +148,37 @@ public class GradePanel extends JPanel {
         return field;
     }
 
-    private JButton createStyledButton(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(new EmptyBorder(14, 30, 14, 30));
-        btn.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                btn.setBackground(bg.brighter());
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                btn.setBackground(bg);
-            }
-        });
-        return btn;
-    }
+private JButton createStyledButton(String text, Color bg) {
+    JButton btn = new JButton(text);
+    btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+    btn.setForeground(Color.WHITE);
+    btn.setBackground(bg);
+
+    btn.setFocusPainted(false);
+    btn.setBorderPainted(false);
+    btn.setContentAreaFilled(false);
+    btn.setOpaque(true);
+
+    btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    btn.setBorder(new EmptyBorder(14, 30, 14, 30));
+
+    Color hoverColor = bg.darker(); // 🔥 darker hover
+
+    btn.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            btn.setBackground(hoverColor);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            btn.setBackground(bg);
+        }
+    });
+
+    return btn;
+}
+
 
     private void loadGrades() {
         txtPrelim.setText("");

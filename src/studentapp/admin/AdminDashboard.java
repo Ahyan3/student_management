@@ -120,7 +120,7 @@ public class AdminDashboard extends JFrame {
     private void styleButton(JButton btn) {
         btn.setFont(new Font("Poppins", Font.BOLD, 15));
         btn.setBackground(new Color(52, 152, 219));
-        btn.setForeground(Color.WHITE);
+        btn.setForeground(Color.DARK_GRAY);
         btn.setFocusPainted(false);
         btn.setBorder(new LineBorder(new Color(52, 152, 219), 12, true));
         btn.setMaximumSize(new Dimension(260, 45));

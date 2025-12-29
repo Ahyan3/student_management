@@ -25,9 +25,9 @@ public class GradesOverviewPanel extends JPanel {
     private DefaultTableModel model;
     private JTextField searchField;
 
-    private static final Color PRIMARY = new Color(52, 152, 219);
-    private static final Color SUCCESS = new Color(46, 204, 113);
-    private static final Color DANGER = new Color(231, 76, 60);
+    private static final Color PRIMARY = new Color(41, 128, 185);   // darker blue
+    private static final Color SUCCESS = new Color(39, 174, 96);    // darker green
+    private static final Color DANGER  = new Color(192, 57, 43);    // darker red
 
     private JLabel tblTitle;
 
@@ -40,7 +40,7 @@ public class GradesOverviewPanel extends JPanel {
         header.setBackground(Color.WHITE);
         header.setBorder(new EmptyBorder(30, 40, 20, 40));
 
-        JLabel title = new JLabel("All Student Grades Overview");
+        JLabel title = new JLabel("Student Grades");
         title.setFont(new Font("Segoe UI", Font.BOLD, 28));
         title.setForeground(new Color(44, 62, 80));
         header.add(title, BorderLayout.WEST);
@@ -133,28 +133,36 @@ public class GradesOverviewPanel extends JPanel {
 
         loadAllGrades(); // Initial load
     }
+private JButton createButton(String text, Color bg) {
+    JButton btn = new JButton(text);
+    btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+    btn.setForeground(Color.WHITE);
+    btn.setBackground(bg);
 
-    private JButton createButton(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(new EmptyBorder(12, 28, 12, 28));
-        btn.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                btn.setBackground(bg.brighter());
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                btn.setBackground(bg);
-            }
-        });
-        return btn;
-    }
+    btn.setFocusPainted(false);
+    btn.setBorderPainted(false);
+    btn.setContentAreaFilled(false);
+    btn.setOpaque(true);
 
+    btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    btn.setBorder(new EmptyBorder(14, 30, 14, 30));
+
+    Color hoverColor = bg.darker(); // 🔥 darker hover
+
+    btn.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            btn.setBackground(hoverColor);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            btn.setBackground(bg);
+        }
+    });
+
+    return btn;
+}
     private void loadAllGrades() {
         searchGrades(); // Reuse search logic with empty keyword
     }

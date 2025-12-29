@@ -118,7 +118,7 @@ public class LoginForm extends JFrame {
         btnLogin.setPreferredSize(new Dimension(260, 42));
         btnLogin.setMinimumSize(new Dimension(260, 42));
         btnLogin.setBackground(new Color(52, 152, 219, 220));
-        btnLogin.setForeground(Color.WHITE);
+        btnLogin.setForeground(Color.DARK_GRAY);
         btnLogin.setFocusPainted(false);
         btnLogin.setBorder(BorderFactory.createLineBorder(
                 new Color(41, 128, 185), 1, true

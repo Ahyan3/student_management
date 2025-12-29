@@ -25,13 +25,14 @@ public class HistoryPanel extends JPanel {
     private JComboBox<String> filterBox;
     private JTextField searchField;
 
-    private static final Color PRIMARY = new Color(52, 152, 219);
-    private static final Color SUCCESS = new Color(46, 204, 113);
-    private static final Color DANGER = new Color(231, 76, 60);
+    private static final Color PRIMARY = new Color(41, 128, 185);   // darker blue
+    private static final Color SUCCESS = new Color(39, 174, 96);    // darker green
+    private static final Color DANGER  = new Color(192, 57, 43);    // darker red
+
 
     public HistoryPanel() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(Color.DARK_GRAY);
 
         // === HEADER: Title + Export Buttons ===
         JPanel header = new JPanel(new BorderLayout());
@@ -125,26 +126,36 @@ public class HistoryPanel extends JPanel {
         loadHistory(); // Initial load
     }
 
-    private JButton createStyledButton(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(new EmptyBorder(12, 28, 12, 28));
-        btn.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                btn.setBackground(bg.brighter());
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                btn.setBackground(bg);
-            }
-        });
-        return btn;
-    }
+private JButton createStyledButton(String text, Color bg) {
+    JButton btn = new JButton(text);
+    btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+    btn.setForeground(Color.WHITE);
+    btn.setBackground(bg);
+
+    btn.setFocusPainted(false);
+    btn.setBorderPainted(false);
+    btn.setContentAreaFilled(false);
+    btn.setOpaque(true);
+
+    btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    btn.setBorder(new EmptyBorder(14, 30, 14, 30));
+
+    Color hoverColor = bg.darker(); // 🔥 darker hover
+
+    btn.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            btn.setBackground(hoverColor);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            btn.setBackground(bg);
+        }
+    });
+
+    return btn;
+}
 
     private void loadHistory() {
         runQuery("SELECT action, student_id, timestamp FROM update_logs ORDER BY timestamp DESC");

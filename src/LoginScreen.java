@@ -51,7 +51,7 @@ public class LoginScreen extends JFrame {
         btnLogin.setFont(new Font("Poppins", Font.BOLD, 14));
         btnLogin.setFocusPainted(false);
         btnLogin.setBackground(new Color(70, 130, 250));
-        btnLogin.setForeground(Color.WHITE);
+        btnLogin.setForeground(Color.DARK_GRAY);
         btnLogin.setBorder(new EmptyBorder(10, 0, 10, 0));
         btnLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
 

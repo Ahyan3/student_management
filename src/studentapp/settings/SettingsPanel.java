@@ -11,14 +11,14 @@ import studentapp.database.DatabaseConnection;
 
 public class SettingsPanel extends JPanel {
 
-    private static final Color PRIMARY = new Color(52, 152, 219);
-    private static final Color SUCCESS = new Color(46, 204, 113);
-    private static final Color WARNING = new Color(241, 196, 15);
-    private static final Color DANGER = new Color(231, 76, 60);
+private static final Color PRIMARY = new Color(41, 128, 185);   // darker blue
+private static final Color SUCCESS = new Color(39, 174, 96);    // darker green
+private static final Color DANGER  = new Color(192, 57, 43);    // darker red
+
 
     public SettingsPanel() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(Color.DARK_GRAY);
 
         // === HEADER: Title + Export Buttons ===
         JPanel header = new JPanel(new BorderLayout());
@@ -94,6 +94,8 @@ public class SettingsPanel extends JPanel {
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setContentAreaFilled(false); 
+        btn.setOpaque(true);
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
         btn.setAlignmentX(Component.CENTER_ALIGNMENT);
         btn.setBorder(new EmptyBorder(14, 30, 14, 30));
@@ -139,7 +141,7 @@ public class SettingsPanel extends JPanel {
         txtAdminConfirm.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         txtAdminConfirm.setBorder(txtAdminUser.getBorder());
 
-        JButton btnAddAdmin = createStyledButton("Create New Admin", SUCCESS);
+        JButton btnAddAdmin = createStyledButton("Create New Admin", PRIMARY);
 
         card.add(userLabel);
         card.add(Box.createVerticalStrut(8));
@@ -174,8 +176,8 @@ public class SettingsPanel extends JPanel {
     }
 
     private void addDatabaseControls(JPanel card) {
-        JButton btnClearStudents = createStyledButton("Delete All Students", WARNING);
-        JButton btnClearLogs = createStyledButton("Clear All Logs", WARNING);
+        JButton btnClearStudents = createStyledButton("Delete All Students", DANGER);
+        JButton btnClearLogs = createStyledButton("Clear All Logs", DANGER);
         JButton btnResetAll = createStyledButton("FULL DATABASE RESET", DANGER);
 
         card.add(btnClearStudents);
@@ -288,7 +290,7 @@ public class SettingsPanel extends JPanel {
         gbc.gridy = 2; dialog.add(new JLabel("Confirm Password:"), gbc);
         gbc.gridy = 3; dialog.add(txtConfirm, gbc);
 
-        JButton btnUpdate = createStyledButton("Update Password", SUCCESS);
+        JButton btnUpdate = createStyledButton("Update Password", PRIMARY);
         gbc.gridy = 4; gbc.gridwidth = 2;
         gbc.insets = new Insets(20, 10, 10, 10);
         dialog.add(btnUpdate, gbc);

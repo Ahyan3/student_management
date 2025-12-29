@@ -28,9 +28,10 @@ public class StudentPanel extends JPanel {
 
     private JTextField txtSearch;
 
-    private static final Color PRIMARY = new Color(52, 152, 219);
-    private static final Color SUCCESS = new Color(46, 204, 113);
-    private static final Color DANGER = new Color(231, 76, 60);
+private static final Color PRIMARY = new Color(41, 128, 185);   // darker blue
+private static final Color SUCCESS = new Color(39, 174, 96);    // darker green
+private static final Color DANGER  = new Color(192, 57, 43);    // darker red
+
 
     private JLabel tblTitle;
 
@@ -55,7 +56,7 @@ public class StudentPanel extends JPanel {
 
     public StudentPanel() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(Color.DARK_GRAY);
 
         // === HEADER ===
         JPanel header = new JPanel(new BorderLayout());
@@ -115,10 +116,10 @@ public class StudentPanel extends JPanel {
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 15, 15));
         buttonPanel.setOpaque(false);
-        JButton addBtn = createButton("Add Student", PRIMARY);
-        JButton updateBtn = createButton("Update Student", PRIMARY);
-        JButton clearBtn = createButton("Clear Fields", PRIMARY);
-        JButton deleteBtn = createButton("Delete Student", DANGER);
+        JButton addBtn = createButton("Add", PRIMARY);
+        JButton updateBtn = createButton("Update", PRIMARY);
+        JButton clearBtn = createButton("Clear", PRIMARY);
+        JButton deleteBtn = createButton("Delete", DANGER);
         buttonPanel.add(addBtn); buttonPanel.add(updateBtn);
         buttonPanel.add(clearBtn); buttonPanel.add(deleteBtn);
         formCard.add(buttonPanel);
@@ -217,7 +218,7 @@ public class StudentPanel extends JPanel {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setOpaque(false);
-        panel.setBorder(new EmptyBorder(10, 0, 20, 0));
+        panel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
         JLabel label = new JLabel(labelText);
         label.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -275,12 +276,13 @@ public class StudentPanel extends JPanel {
 
     private JButton createButton(String text, Color color) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b.setForeground(Color.WHITE);
         b.setBackground(color);
         b.setFocusPainted(false);
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        b.setPreferredSize(new Dimension(140, 42));
+        b.setBorder(new EmptyBorder(14, 30, 14, 30));
+        //b.setPreferredSize(new Dimension(140, 42));
         b.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) { b.setBackground(color.darker()); }
@@ -382,43 +384,6 @@ public class StudentPanel extends JPanel {
         p.add(field, BorderLayout.CENTER);
         return p;
     }
-
-    private FocusListener focusListener(JComponent c) {
-        return new FocusAdapter() {
-            public void focusGained(FocusEvent e) {
-                c.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(PRIMARY, 3),
-                    c instanceof JTextField ? BorderFactory.createEmptyBorder(9, 13, 9, 13) :
-                                              BorderFactory.createEmptyBorder(9, 13, 9, 9)));
-            }
-            public void focusLost(FocusEvent e) {
-                c.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
-                    c instanceof JTextField ? BorderFactory.createEmptyBorder(10, 14, 10, 14) :
-                                              BorderFactory.createEmptyBorder(10, 14, 10, 10)));
-            }
-        };
-    }
-
-    private JButton createButton(String text, Color color) {
-        JButton b = new JButton(text);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        b.setForeground(Color.WHITE);
-        b.setBackground(color);
-        b.setFocusPainted(false);
-        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        b.setPreferredSize(new Dimension(140, 42));
-        b.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { b.setBackground(color.darker()); }
-            public void mouseExited(MouseEvent e) { b.setBackground(color); }
-        });
-        return b;
-    }
-
-    // === ALL CRUD, FILTER, EXPORT METHODS (same as before) ===
-    // filterTable(), loadStudents(), addStudent(), updateStudent(), deleteStudent(),
-    // loadSelected(), clearFields(), exportPDF(), exportCSV(), logAction(), refresh()
-    // → 100% unchanged and working perfectly
 
     private void filterTable() {
         String search = txtSearch.getText().toLowerCase().trim();
