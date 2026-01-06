@@ -141,55 +141,55 @@ private static final Color DANGER  = new Color(192, 57, 43);    // darker red
         txtAdminConfirm.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         txtAdminConfirm.setBorder(txtAdminUser.getBorder());
 
-        JButton btnAddAdmin = createStyledButton("Create New Admin", PRIMARY);
+        // JButton btnAddAdmin = createStyledButton("Create New Admin", PRIMARY);
 
-        card.add(userLabel);
-        card.add(Box.createVerticalStrut(8));
-        card.add(txtAdminUser);
-        card.add(Box.createVerticalStrut(15));
-        card.add(passLabel);
-        card.add(Box.createVerticalStrut(8));
-        card.add(txtAdminPass);
-        card.add(Box.createVerticalStrut(15));
-        card.add(confirmLabel);
-        card.add(Box.createVerticalStrut(8));
-        card.add(txtAdminConfirm);
-        card.add(Box.createVerticalStrut(25));
-        card.add(btnAddAdmin);
+    //     card.add(userLabel);
+    //     card.add(Box.createVerticalStrut(8));
+    //     card.add(txtAdminUser);
+    //     card.add(Box.createVerticalStrut(15));
+    //     card.add(passLabel);
+    //     card.add(Box.createVerticalStrut(8));
+    //     card.add(txtAdminPass);
+    //     card.add(Box.createVerticalStrut(15));
+    //     card.add(confirmLabel);
+    //     card.add(Box.createVerticalStrut(8));
+    //     card.add(txtAdminConfirm);
+    //     card.add(Box.createVerticalStrut(25));
+    //     card.add(btnAddAdmin);
 
-        btnAddAdmin.addActionListener(e -> {
-            String user = txtAdminUser.getText().trim();
-            String pass = new String(txtAdminPass.getPassword());
-            String confirm = new String(txtAdminConfirm.getPassword());
+    //     btnAddAdmin.addActionListener(e -> {
+    //         String user = txtAdminUser.getText().trim();
+    //         String pass = new String(txtAdminPass.getPassword());
+    //         String confirm = new String(txtAdminConfirm.getPassword());
 
-            if (user.isEmpty() || pass.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (!pass.equals(confirm)) {
-                JOptionPane.showMessageDialog(this, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+    //         if (user.isEmpty() || pass.isEmpty()) {
+    //             JOptionPane.showMessageDialog(this, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
+    //             return;
+    //         }
+    //         if (!pass.equals(confirm)) {
+    //             JOptionPane.showMessageDialog(this, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
+    //             return;
+    //         }
 
-            createAdmin(user, pass);
-        });
+    //         createAdmin(user, pass);
+    //     });
     }
 
     private void addDatabaseControls(JPanel card) {
         JButton btnClearStudents = createStyledButton("Delete All Students", DANGER);
         JButton btnClearLogs = createStyledButton("Clear All Logs", DANGER);
-        JButton btnResetAll = createStyledButton("FULL DATABASE RESET", DANGER);
+        // JButton btnResetAll = createStyledButton("FULL DATABASE RESET", DANGER);
 
         card.add(btnClearStudents);
         card.add(Box.createVerticalStrut(15));
         card.add(btnClearLogs);
         card.add(Box.createVerticalStrut(15));
-        card.add(btnResetAll);
+        // card.add(btnResetAll);
 
         btnClearStudents.addActionListener(e -> clearStudents());
         btnClearLogs.addActionListener(e -> clearHistory());
-        btnResetAll.addActionListener(e -> resetDatabase());
-    }
+        // btnResetAll.addActionListener(e -> resetDatabase());
+    } 
 
     private void addAccountControls(JPanel card) {
         JButton btnLogout = createStyledButton("Logout", new Color(108, 117, 125));

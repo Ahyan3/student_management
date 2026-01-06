@@ -53,20 +53,33 @@ public class LoginForm extends JFrame {
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setBorder(BorderFactory.createEmptyBorder(50, 40, 50, 40));
 
-        JLabel lblTitle = new JLabel("Teacher Assistant System");
-        lblTitle.setFont(new Font("Poppins", Font.BOLD, 18));
-        lblTitle.setForeground(new Color(245, 245, 245));
+JLabel lblTitle = new JLabel(
+        "<html><div style='text-align:center;'>Teacher<br>Assistant System</div></html>"
+);
+lblTitle.setFont(new Font("Poppins", Font.BOLD, 28));
+lblTitle.setForeground(new Color(245, 245, 245));
+
+// CENTER the label itself in BoxLayout
+lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+// CENTER the text horizontally
+lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
+
+// Optional: add spacing from top
+lblTitle.setBorder(BorderFactory.createEmptyBorder(40, 0, 0, 0));
+
+
         
 
-        JLabel lblDesc = new JLabel(
-                "<html>Manage student records efficiently and securely.<br>"
-              + "Access academic data with ease.</html>"
-        );
-        lblDesc.setForeground(new Color(230, 230, 230));
-        lblDesc.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        // JLabel lblDesc = new JLabel(
+        //         "<html>Manage student records efficiently and securely.<br>"
+        //       + "Access academic data with ease.</html>"
+        // );
+        // lblDesc.setForeground(new Color(230, 230, 230));
+        // lblDesc.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
         leftPanel.add(lblTitle);
-        leftPanel.add(lblDesc);
+        // leftPanel.add(lblDesc);
 
         // ===== RIGHT PANEL =====
         JPanel rightPanel = new JPanel(new GridBagLayout());

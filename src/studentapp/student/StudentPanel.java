@@ -221,7 +221,7 @@ private static final Color DANGER  = new Color(192, 57, 43);    // darker red
         panel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
         JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setFont(new Font("Segoe UI", Font.BOLD, 16));
         label.setForeground(new Color(70, 70, 70));
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
 

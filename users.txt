@@ -1,4 +1,0 @@
-admin,admin,Admin
-user,user,User
-user123,User,User
-tan,tan,User
